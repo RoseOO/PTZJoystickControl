@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="50"
+             x:Class="PtzJoystickControl.Gui.Views.MappingProfileView">
+
+	<Border Background="#2000" CornerRadius="6" Padding="6,4" Margin="0,4,0,0">
+		<StackPanel Spacing="4">
+			<TextBlock Text="Mapping Profiles" FontWeight="Bold" FontSize="11"/>
+			<Grid ColumnDefinitions="*,Auto,Auto,10,*,Auto" RowDefinitions="Auto">
+				<ComboBox Grid.Column="0" Items="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfile}"
+				          HorizontalAlignment="Stretch" Height="28" FontSize="11"/>
+				<Button Grid.Column="1" Content="Load" Command="{Binding LoadProfile}" Height="28" FontSize="11" Padding="8,2" Margin="4,0,0,0"/>
+				<Button Grid.Column="2" Content="Delete" Command="{Binding DeleteProfile}" Height="28" FontSize="11" Padding="8,2" Margin="4,0,0,0"/>
+				<TextBox Grid.Column="4" Text="{Binding NewProfileName}" Watermark="Profile name..." Height="28" FontSize="11"/>
+				<Button Grid.Column="5" Content="Save" Command="{Binding SaveProfile}" Height="28" FontSize="11" Padding="8,2" Margin="4,0,0,0"/>
+			</Grid>
+		</StackPanel>
+	</Border>
+</UserControl>

@@ -1,0 +1,41 @@
+name: Build Windows Zip on Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-windows-zip:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Publish application
+      run: |
+        dotnet publish Gui/Gui.csproj -c Release -r $env:Runtime --self-contained -o publish/$env:Runtime
+      env:
+        Runtime: ${{ format('win-{0}', matrix.arch) }}
+
+    - name: Create zip archive
+      run: |
+        Compress-Archive -Path publish/$env:Runtime/* -DestinationPath $env:ZipName
+      env:
+        Runtime: ${{ format('win-{0}', matrix.arch) }}
+        ZipName: ${{ format('PTZJoystickControl_{0}_win_{1}.zip', github.event.release.tag_name, matrix.arch) }}
+
+    - name: Upload zip to release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: "*.zip"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

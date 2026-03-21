@@ -67,8 +67,16 @@ public class CameraControlViewModel : ViewModelBase, INotifyPropertyChanged
     public void PowerOff() => _camera?.Power(Power.Off);
 
     // Presets
-    public void RecallPreset(byte number) => _camera?.Preset(Preset.Recall, number);
-    public void SetPreset(byte number) => _camera?.Preset(Preset.Set, number);
+    public void RecallPreset(object? param)
+    {
+        if (param != null && byte.TryParse(param.ToString(), out byte number))
+            _camera?.Preset(Preset.Recall, number);
+    }
+    public void SetPreset(object? param)
+    {
+        if (param != null && byte.TryParse(param.ToString(), out byte number))
+            _camera?.Preset(Preset.Set, number);
+    }
 
     // Exposure
     public static IEnumerable<ExposureMode> ExposureModes => Enum.GetValues<ExposureMode>();

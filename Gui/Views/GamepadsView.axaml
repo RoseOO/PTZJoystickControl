@@ -6,7 +6,7 @@
              xmlns:v="using:PtzJoystickControl.Gui.Views"
              mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="450"
              x:Class="PtzJoystickControl.Gui.Views.GamepadsView">
-	<Grid RowDefinitions="Auto, *" ColumnDefinitions="*,Auto">
+	<Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,Auto">
 		<ComboBox Grid.Row="0" Items="{Binding AvailableGamepads}" SelectedItem="{Binding SelectedGamepadInfo}" Margin="10,10,10,0" HorizontalAlignment="Stretch">
 			<ComboBox.Styles>
 				<Style Selector="ComboBoxItem">
@@ -26,6 +26,8 @@
 			</ComboBox.ItemTemplate>
 		</ComboBox>
 		<ToggleSwitch Name="showAxisSettings" Grid.Row="0" Grid.Column="1" Margin="10,5,10,-5" VerticalAlignment="Center" OnContent="Advanced" OffContent="Advanced"/>
+
+		<v:MappingProfileView Grid.Row="1" Grid.ColumnSpan="2" Margin="10,4,10,0" DataContext="{Binding MappingProfileViewModel}"/>
 
 		<ScrollViewer Grid.Row="2" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Visible" Margin="10">
 			<ItemsControl Items="{Binding InputViewModels}">

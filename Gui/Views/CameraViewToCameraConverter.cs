@@ -17,6 +17,8 @@ namespace PtzJoystickControl.Gui.Views
         {
             if (value is IPCameraViewModel ipCameraViewModel)
                 return ipCameraViewModel.Camera;
+            if (value is SerialCameraViewModel serialCameraViewModel)
+                return serialCameraViewModel.Camera;
 
             return null;
         }

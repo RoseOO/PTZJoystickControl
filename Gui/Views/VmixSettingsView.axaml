@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="70"
+             x:Class="PtzJoystickControl.Gui.Views.VmixSettingsView">
+
+	<Border Background="#2000" CornerRadius="6" Margin="10,4,10,10" Padding="8,4">
+		<StackPanel Spacing="4">
+			<TextBlock Text="vMix Integration" FontWeight="Bold" FontSize="12"/>
+			<Grid ColumnDefinitions="80,3,100,3,55,3,Auto,3,Auto,3,Auto" RowDefinitions="Auto,Auto">
+				<Grid.Styles>
+					<Style Selector="Label">
+						<Setter Property="FontSize" Value="11"/>
+					</Style>
+					<Style Selector="TextBox">
+						<Setter Property="VerticalAlignment" Value="Center"/>
+						<Setter Property="FontSize" Value="11"/>
+					</Style>
+				</Grid.Styles>
+				<Label Grid.Column="0" Grid.Row="0">Host</Label>
+				<TextBox Grid.Column="0" Grid.Row="1" Text="{Binding Host}"/>
+				<Label Grid.Column="2" Grid.Row="0">Port</Label>
+				<TextBox Grid.Column="2" Grid.Row="1" Text="{Binding Port}" MinWidth="0"/>
+				<Label Grid.Column="4" Grid.Row="0">Preview</Label>
+				<CheckBox Grid.Column="4" Grid.Row="1" IsChecked="{Binding AutoPreview}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<Label Grid.Column="6" Grid.Row="0">Status</Label>
+				<TextBlock Grid.Column="6" Grid.Row="1" VerticalAlignment="Center" FontSize="11">
+					<TextBlock.Text>
+						<MultiBinding StringFormat="{}{0}">
+							<Binding Path="IsConnected"/>
+						</MultiBinding>
+					</TextBlock.Text>
+				</TextBlock>
+				<Button Grid.Column="8" Grid.Row="0" Grid.RowSpan="2" Content="Connect" Command="{Binding Connect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
+				<Button Grid.Column="10" Grid.Row="0" Grid.RowSpan="2" Content="Disconnect" Command="{Binding Disconnect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
+			</Grid>
+		</StackPanel>
+	</Border>
+</UserControl>

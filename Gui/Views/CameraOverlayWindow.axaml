@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PtzJoystickControl.Gui.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="120"
+        x:Class="PtzJoystickControl.Gui.Views.CameraOverlayWindow"
+        Title="Camera Status"
+        Width="260" SizeToContent="Height"
+        Topmost="True"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        Background="#C0202020"
+        TransparencyLevelHint="Transparent">
+
+  <Border CornerRadius="8" BorderBrush="#60FFFFFF" BorderThickness="1" Padding="8">
+    <StackPanel Spacing="4">
+      <TextBlock Text="Camera Status" FontWeight="Bold" FontSize="12" Foreground="White"/>
+      <ItemsControl Items="{Binding CameraInfos}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="{x:Type vm:CameraInfoItem}">
+            <Grid ColumnDefinitions="24,*,70" Margin="0,1">
+              <Border Width="20" Height="18" CornerRadius="3" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{Binding StatusBackground}">
+                <TextBlock Text="{Binding Number}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="11" FontWeight="Bold" Foreground="White"/>
+              </Border>
+              <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"
+                         FontSize="11" Foreground="White" Margin="4,0"/>
+              <TextBlock Grid.Column="2" Text="{Binding StatusText}" VerticalAlignment="Center" FontSize="10"
+                         Foreground="{Binding StatusColor}" HorizontalAlignment="Right"/>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </Border>
+</Window>
