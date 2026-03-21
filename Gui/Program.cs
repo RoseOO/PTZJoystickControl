@@ -81,8 +81,11 @@ internal class Program
 
         services.RegisterConstant<ICameraSettingsStore>(new CameraSettingsStore());
         services.RegisterConstant<IGamepadSettingsStore>(new GamepadSettingsStore());
+        services.RegisterConstant<IMappingProfileStore>(new MappingProfileStore());
 
-        services.RegisterConstant<ICommandsService>(new CommandsService());
+        services.RegisterConstant<IVmixService>(new VmixService());
+        services.RegisterConstant<ICommandsService>(new CommandsService(
+            resolver.GetServiceOrThrow<IVmixService>()));
         services.RegisterConstant<ICamerasService>(new CamerasService(
             resolver.GetServiceOrThrow<ICameraSettingsStore>()));
         services.RegisterConstant<IGamepadsService>(new SdlGamepadsService(
@@ -91,10 +94,14 @@ internal class Program
             resolver.GetServiceOrThrow<ICommandsService>()));
 
         services.RegisterLazySingleton(() => new GamepadsViewModel(
-            resolver.GetServiceOrThrow<IGamepadsService>()));
+            resolver.GetServiceOrThrow<IGamepadsService>(),
+            resolver.GetServiceOrThrow<IMappingProfileStore>()));
         services.Register(() => new CamerasViewModel(
             resolver.GetServiceOrThrow<ICamerasService>(),
             resolver.GetServiceOrThrow<GamepadsViewModel>()));
+        services.RegisterLazySingleton(() => new CameraControlViewModel());
+        services.RegisterLazySingleton(() => new VmixViewModel(
+            resolver.GetServiceOrThrow<IVmixService>()));
         services.RegisterLazySingleton(() => new TrayIconHandler(
             avaloniaLocator.GetServiceOrThrow<IAssetLoader>()));
     }

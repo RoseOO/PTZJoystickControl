@@ -1,0 +1,270 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:v="using:PtzJoystickControl.Gui.Views"
+             xmlns:vm="using:PtzJoystickControl.Gui.ViewModels"
+             xmlns:devices="clr-namespace:PtzJoystickControl.Core.Devices;assembly=Core"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="900"
+             x:Class="PtzJoystickControl.Gui.Views.CameraControlView">
+
+  <Design.DataContext>
+    <vm:CameraControlViewModel/>
+  </Design.DataContext>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="8" Spacing="12" IsEnabled="{Binding HasCamera}">
+
+      <!-- Section 1: PTZ Movement -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="PTZ Movement" FontWeight="Bold" FontSize="13"/>
+
+        <Grid ColumnDefinitions="30,30,30,20,30,30,30" RowDefinitions="30,30,30" Margin="0,2">
+          <!-- Row 0 -->
+          <Button Grid.Row="0" Grid.Column="0" Content="↖" Width="30" Height="30" Margin="1"
+                  Command="{Binding MoveUpLeft}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Row="0" Grid.Column="1" Content="↑" Width="30" Height="30" Margin="1"
+                  Command="{Binding TiltUp}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Row="0" Grid.Column="2" Content="↗" Width="30" Height="30" Margin="1"
+                  Command="{Binding MoveUpRight}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+
+          <Button Grid.Row="0" Grid.Column="4" Content="Z+" Width="30" Height="30" Margin="1"
+                  Command="{Binding ZoomIn}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="Zoom In (Tele)"/>
+          <!-- Row 1 -->
+          <Button Grid.Row="1" Grid.Column="0" Content="←" Width="30" Height="30" Margin="1"
+                  Command="{Binding PanLeft}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Row="1" Grid.Column="1" Content="■" Width="30" Height="30" Margin="1"
+                  Command="{Binding MoveStop}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="Stop All Movement"/>
+          <Button Grid.Row="1" Grid.Column="2" Content="→" Width="30" Height="30" Margin="1"
+                  Command="{Binding PanRight}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+
+          <Button Grid.Row="1" Grid.Column="4" Content="Z■" Width="30" Height="30" Margin="1"
+                  Command="{Binding ZoomStop}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="Zoom Stop"/>
+          <!-- Row 2 -->
+          <Button Grid.Row="2" Grid.Column="0" Content="↙" Width="30" Height="30" Margin="1"
+                  Command="{Binding MoveDownLeft}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Row="2" Grid.Column="1" Content="↓" Width="30" Height="30" Margin="1"
+                  Command="{Binding TiltDown}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Row="2" Grid.Column="2" Content="↘" Width="30" Height="30" Margin="1"
+                  Command="{Binding MoveDownRight}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+
+          <Button Grid.Row="2" Grid.Column="4" Content="Z-" Width="30" Height="30" Margin="1"
+                  Command="{Binding ZoomOut}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="Zoom Out (Wide)"/>
+        </Grid>
+
+        <!-- Speed Sliders -->
+        <Grid ColumnDefinitions="70,*,30" RowDefinitions="Auto,Auto,Auto" Margin="0,4,0,0">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Pan Spd" VerticalAlignment="Center" FontSize="11"/>
+          <Slider Grid.Row="0" Grid.Column="1" Minimum="1" Maximum="24"
+                  Value="{Binding PanSpeed}" IsSnapToTickEnabled="True" TickFrequency="1"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding PanSpeed}" VerticalAlignment="Center"
+                     HorizontalAlignment="Center" FontSize="11"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Tilt Spd" VerticalAlignment="Center" FontSize="11"/>
+          <Slider Grid.Row="1" Grid.Column="1" Minimum="1" Maximum="20"
+                  Value="{Binding TiltSpeed}" IsSnapToTickEnabled="True" TickFrequency="1"/>
+          <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding TiltSpeed}" VerticalAlignment="Center"
+                     HorizontalAlignment="Center" FontSize="11"/>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Zoom Spd" VerticalAlignment="Center" FontSize="11"/>
+          <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="7"
+                  Value="{Binding ZoomSpeed}" IsSnapToTickEnabled="True" TickFrequency="1"/>
+          <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding ZoomSpeed}" VerticalAlignment="Center"
+                     HorizontalAlignment="Center" FontSize="11"/>
+        </Grid>
+      </StackPanel>
+
+      <Separator/>
+
+      <!-- Section 2: Focus -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="Focus" FontWeight="Bold" FontSize="13"/>
+        <StackPanel Orientation="Horizontal" Spacing="2">
+          <Button Content="Far" Width="40" Height="28" Command="{Binding FocusFar}" FontSize="11"/>
+          <Button Content="Stop" Width="40" Height="28" Command="{Binding FocusStop}" FontSize="11"/>
+          <Button Content="Near" Width="40" Height="28" Command="{Binding FocusNear}" FontSize="11"/>
+          <Border Width="10"/>
+          <Button Content="Auto" Width="46" Height="28" Command="{Binding FocusAuto}" FontSize="11"/>
+          <Button Content="Manual" Width="52" Height="28" Command="{Binding FocusManual}" FontSize="11"/>
+          <Button Content="Toggle" Width="52" Height="28" Command="{Binding FocusToggle}" FontSize="11"/>
+        </StackPanel>
+        <Grid ColumnDefinitions="70,*,30">
+          <TextBlock Grid.Column="0" Text="Focus Spd" VerticalAlignment="Center" FontSize="11"/>
+          <Slider Grid.Column="1" Minimum="0" Maximum="7"
+                  Value="{Binding FocusSpeed}" IsSnapToTickEnabled="True" TickFrequency="1"/>
+          <TextBlock Grid.Column="2" Text="{Binding FocusSpeed}" VerticalAlignment="Center"
+                     HorizontalAlignment="Center" FontSize="11"/>
+        </Grid>
+      </StackPanel>
+
+      <Separator/>
+
+      <!-- Section 3: Presets -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="Presets" FontWeight="Bold" FontSize="13"/>
+        <TextBlock Text="Recall" FontSize="11" Foreground="#999999"/>
+        <Grid ColumnDefinitions="30,30,30,30,30,30,30,30,30" RowDefinitions="30">
+          <Button Grid.Column="0" Content="1" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="1"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="1" Content="2" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="2"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="2" Content="3" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="3"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="3" Content="4" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="4"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="4" Content="5" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="5"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="5" Content="6" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="6"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="6" Content="7" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="7"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="7" Content="8" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="8"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="8" Content="9" Width="30" Height="30" Margin="1"
+                  Command="{Binding RecallPreset}" CommandParameter="9"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        </Grid>
+        <TextBlock Text="Set" FontSize="11" Foreground="#999999"/>
+        <Grid ColumnDefinitions="30,30,30,30,30,30,30,30,30" RowDefinitions="30">
+          <Button Grid.Column="0" Content="S1" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="1"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="1" Content="S2" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="2"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="2" Content="S3" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="3"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="3" Content="S4" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="4"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="4" Content="S5" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="5"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="5" Content="S6" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="6"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="6" Content="S7" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="7"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="7" Content="S8" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="8"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+          <Button Grid.Column="8" Content="S9" Width="30" Height="30" Margin="1" FontSize="10"
+                  Command="{Binding SetPreset}" CommandParameter="9"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        </Grid>
+      </StackPanel>
+
+      <Separator/>
+
+      <!-- Section 4: Exposure -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="Exposure" FontWeight="Bold" FontSize="13"/>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Text="Mode" VerticalAlignment="Center" FontSize="11"/>
+          <ComboBox Items="{x:Static vm:CameraControlViewModel.ExposureModes}"
+                    SelectedItem="{Binding SelectedExposureMode}"
+                    Width="130" Height="28" FontSize="11"/>
+        </StackPanel>
+        <Grid ColumnDefinitions="50,Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto" Margin="0,2">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Iris" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding IrisUp}" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding IrisDown}" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding IrisReset}" FontSize="10"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Shutter" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding ShutterUp}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding ShutterDown}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding ShutterReset}" FontSize="10"/>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Gain" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="2" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding GainUp}" FontSize="11"/>
+          <Button Grid.Row="2" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding GainDown}" FontSize="11"/>
+          <Button Grid.Row="2" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding GainReset}" FontSize="10"/>
+        </Grid>
+      </StackPanel>
+
+      <Separator/>
+
+      <!-- Section 5: White Balance -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="White Balance" FontWeight="Bold" FontSize="13"/>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Text="Mode" VerticalAlignment="Center" FontSize="11"/>
+          <ComboBox Items="{x:Static vm:CameraControlViewModel.WhiteBalanceModes}"
+                    SelectedItem="{Binding SelectedWhiteBalanceMode}"
+                    Width="130" Height="28" FontSize="11"/>
+          <Button Content="WB Trigger" Height="28" Command="{Binding WbTrigger}" FontSize="11" Padding="6,2"/>
+        </StackPanel>
+        <Grid ColumnDefinitions="60,Auto,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0,2">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Red Gain" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding RedGainUp}" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding RedGainDown}" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding RedGainReset}" FontSize="10"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Blue Gain" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding BlueGainUp}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding BlueGainDown}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding BlueGainReset}" FontSize="10"/>
+        </Grid>
+      </StackPanel>
+
+      <Separator/>
+
+      <!-- Section 6: Other -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="Other" FontWeight="Bold" FontSize="13"/>
+        <Grid ColumnDefinitions="60,Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto" Margin="0,2">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Backlight" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="1" Content="On" Width="38" Height="28" Margin="1"
+                  Command="{Binding BacklightOn}" FontSize="11"/>
+          <Button Grid.Row="0" Grid.Column="2" Content="Off" Width="38" Height="28" Margin="1"
+                  Command="{Binding BacklightOff}" FontSize="11"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="1" Content="▲" Width="30" Height="28" Margin="1"
+                  Command="{Binding ApertureUp}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="2" Content="▼" Width="30" Height="28" Margin="1"
+                  Command="{Binding ApertureDown}" FontSize="11"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="Reset" Width="46" Height="28" Margin="1"
+                  Command="{Binding ApertureReset}" FontSize="10"/>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Power" VerticalAlignment="Center" FontSize="11"/>
+          <Button Grid.Row="2" Grid.Column="1" Content="On" Width="38" Height="28" Margin="1"
+                  Command="{Binding PowerOn}" FontSize="11"/>
+          <Button Grid.Row="2" Grid.Column="2" Content="Off" Width="38" Height="28" Margin="1"
+                  Command="{Binding PowerOff}" FontSize="11"/>
+        </Grid>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

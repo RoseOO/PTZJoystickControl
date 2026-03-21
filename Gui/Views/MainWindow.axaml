@@ -4,7 +4,7 @@
         xmlns:v="using:PtzJoystickControl.Gui.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="550"
         x:Class="PtzJoystickControl.Gui.Views.MainWindow"
 		TransparencyLevelHint="AcrylicBlur"
 		ExtendClientAreaToDecorationsHint="True"
@@ -14,25 +14,40 @@
 
 	<Grid RowDefinitions="Auto,*">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="4*" MinWidth="550"/>
-			<ColumnDefinition Width="3*" MinWidth="420"/>
+			<ColumnDefinition Width="4*" MinWidth="450"/>
+			<ColumnDefinition Width="3*" MinWidth="360"/>
+			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		
-		<ExperimentalAcrylicBorder IsVisible="{Binding AcrylicEnabled}" IsHitTestVisible="False" Grid.ColumnSpan="2" Grid.RowSpan="2">
+		<ExperimentalAcrylicBorder IsVisible="{Binding AcrylicEnabled}" IsHitTestVisible="False" Grid.ColumnSpan="3" Grid.RowSpan="2">
 			<ExperimentalAcrylicBorder.Material>
 				<ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="black" TintOpacity="0.75" MaterialOpacity=".65" />
 			</ExperimentalAcrylicBorder.Material>
 		</ExperimentalAcrylicBorder>
-		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#3a3a3a" IsHitTestVisible="False" Grid.ColumnSpan="2" Grid.RowSpan="2"/>
+		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#3a3a3a" IsHitTestVisible="False" Grid.ColumnSpan="3" Grid.RowSpan="2"/>
 		
-		<StackPanel IsVisible="{Binding IsExtendedIntoWindowDecorations, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Height="30" Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="{Binding TitleHorizontalAlignment}">
+		<StackPanel IsVisible="{Binding IsExtendedIntoWindowDecorations, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Height="30" Grid.Row="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="{Binding TitleHorizontalAlignment}">
 			<Image Source="/Assets/icon.ico" Height="22" HorizontalAlignment="Left" Margin="4"/>
 			<TextBlock Text="PTZ Joystick Control" VerticalAlignment="Center"/>
 		</StackPanel>
 		
 		<v:GamepadsView Grid.Column="0" Grid.Row="1" DataContext="{Binding GamepadsViewModel}"/>
 		<GridSplitter Grid.Column="0" Grid.Row="1" Width="6" HorizontalAlignment="Right" Margin="0,10,-3,10"/>
-		<v:CamerasView Grid.Column="1" Grid.Row="1" DataContext="{Binding CamerasViewModel}"/>
+
+		<Grid Grid.Column="1" Grid.Row="1" RowDefinitions="*,Auto">
+			<v:CamerasView Grid.Row="0" DataContext="{Binding CamerasViewModel}"/>
+			<v:VmixSettingsView Grid.Row="1" DataContext="{Binding VmixViewModel}"/>
+		</Grid>
+
+		<GridSplitter Grid.Column="1" Grid.Row="1" Width="6" HorizontalAlignment="Right" Margin="0,10,-3,10"/>
+		
+		<Grid Grid.Column="2" Grid.Row="1" RowDefinitions="Auto,*" MinWidth="300">
+			<StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4" Spacing="6">
+				<TextBlock Text="Camera Controls" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+				<Button Content="Overlay" Command="{Binding ToggleOverlay}" FontSize="11" Padding="8,2" VerticalAlignment="Center"/>
+			</StackPanel>
+			<v:CameraControlView Grid.Row="1" DataContext="{Binding CameraControlViewModel}"/>
+		</Grid>
 	</Grid>
 
 </Window>

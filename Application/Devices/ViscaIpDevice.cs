@@ -226,6 +226,65 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         AddCommand(AddPresetRecallSpeedCommand);
     }
 
+    public override void SetExposureMode(ExposureMode mode)
+    {
+        exposureModeCmd = (byte)mode;
+        AddCommand(AddExposureModeCommand);
+    }
+
+    public override void AdjustIris(IrisDir direction)
+    {
+        irisCmd = (byte)direction;
+        AddCommand(AddIrisCommand);
+    }
+
+    public override void AdjustShutter(ShutterDir direction)
+    {
+        shutterCmd = (byte)direction;
+        AddCommand(AddShutterCommand);
+    }
+
+    public override void AdjustGain(GainDir direction)
+    {
+        gainCmd = (byte)direction;
+        AddCommand(AddGainCommand);
+    }
+
+    public override void SetWhiteBalanceMode(WhiteBalanceMode mode)
+    {
+        whiteBalanceModeCmd = (byte)mode;
+        AddCommand(AddWhiteBalanceModeCommand);
+    }
+
+    public override void SetBacklightCompensation(BacklightCompensation mode)
+    {
+        backlightCmd = (byte)mode;
+        AddCommand(AddBacklightCommand);
+    }
+
+    public override void AdjustRedGain(GainDir direction)
+    {
+        redGainCmd = (byte)direction;
+        AddCommand(AddRedGainCommand);
+    }
+
+    public override void AdjustBlueGain(GainDir direction)
+    {
+        blueGainCmd = (byte)direction;
+        AddCommand(AddBlueGainCommand);
+    }
+
+    public override void AdjustAperture(ApertureDir direction)
+    {
+        apertureCmd = (byte)direction;
+        AddCommand(AddApertureCommand);
+    }
+
+    public override void TriggerWhiteBalance()
+    {
+        AddCommand(AddWhiteBalanceTriggerCommand);
+    }
+
     public ViscaIPHeaderType AddPowerCommand()
     {
         // 81 01 04 00 0X FF
@@ -334,6 +393,126 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.PanTilt;
         tmpBuffer[tmpBuffIndex++] = 0x01;
         tmpBuffer[tmpBuffIndex++] = presetRecallSpeed;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddExposureModeCommand()
+    {
+        // 81 01 04 39 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.ExposureMode;
+        tmpBuffer[tmpBuffIndex++] = exposureModeCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddIrisCommand()
+    {
+        // 81 01 04 0B 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.Iris;
+        tmpBuffer[tmpBuffIndex++] = irisCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddShutterCommand()
+    {
+        // 81 01 04 0A 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.Shutter;
+        tmpBuffer[tmpBuffIndex++] = shutterCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddGainCommand()
+    {
+        // 81 01 04 0C 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.Gain;
+        tmpBuffer[tmpBuffIndex++] = gainCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddWhiteBalanceModeCommand()
+    {
+        // 81 01 04 35 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.WhiteBalanceMode;
+        tmpBuffer[tmpBuffIndex++] = whiteBalanceModeCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddBacklightCommand()
+    {
+        // 81 01 04 33 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.BacklightCompensation;
+        tmpBuffer[tmpBuffIndex++] = backlightCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddRedGainCommand()
+    {
+        // 81 01 04 03 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.RGain;
+        tmpBuffer[tmpBuffIndex++] = redGainCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddBlueGainCommand()
+    {
+        // 81 01 04 04 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.BGain;
+        tmpBuffer[tmpBuffIndex++] = blueGainCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddApertureCommand()
+    {
+        // 81 01 04 02 0x FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.Aperture;
+        tmpBuffer[tmpBuffIndex++] = apertureCmd;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Command;
+    }
+
+    private ViscaIPHeaderType AddWhiteBalanceTriggerCommand()
+    {
+        // 81 01 04 10 05 FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Command;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandType.WhiteBalanceTrigger;
+        tmpBuffer[tmpBuffIndex++] = 0x05;
         tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
         return ViscaIPHeaderType.Command;
     }

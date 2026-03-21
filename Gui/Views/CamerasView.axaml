@@ -27,12 +27,18 @@
 				<DataTemplate DataType="{x:Type devices:ViscaIPDeviceBase}">
 					<v:IPCameraView DataContext="{Binding, Converter={StaticResource CameraToCameraViewConverter}}"/>
 				</DataTemplate>
+				<DataTemplate DataType="{x:Type devices:ViscaSerialDeviceBase}">
+					<v:SerialCameraView DataContext="{Binding, Converter={StaticResource CameraToCameraViewConverter}}"/>
+				</DataTemplate>
 				<DataTemplate DataType="{x:Type devices:ViscaDeviceBase}">
 					<TextBlock Text="Unsupported visca device"/>
 				</DataTemplate>
 			</ListBox.DataTemplates>
 		</ListBox>
-		<Button Grid.Row="1" Content="Add" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="10" VerticalAlignment="Bottom" Width="75" Command="{Binding AddCamera}"/>
+		<StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="10" VerticalAlignment="Bottom">
+			<Button Content="Add IP Camera" HorizontalContentAlignment="Center" Width="100" Command="{Binding AddCamera}"/>
+			<Button Content="Add Serial Camera" HorizontalContentAlignment="Center" Width="120" Command="{Binding AddSerialCamera}"/>
+		</StackPanel>
 	</Grid>
 </UserControl>
 

@@ -51,6 +51,9 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     public void AddCamera() =>
         _camerasService.AddCamera(new ViscaIpDevice($"Camera {Cameras.Count() + 1}"));
 
+    public void AddSerialCamera() =>
+        _camerasService.AddCamera(new ViscaSerialDevice($"Serial {Cameras.Count() + 1}"));
+
     public void RemoveCamera(object camera)
     {
         _camerasService.RemoveCamera((ViscaDeviceBase)camera);

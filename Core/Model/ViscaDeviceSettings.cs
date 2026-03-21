@@ -12,6 +12,8 @@ public class ViscaDeviceSettings
     public int SendWaitTime { get; set; }
     public bool UseHeader { get; set; }
     public bool SingleCommand { get; set; }
+    public string? SerialPortName { get; set; }
+    public int SerialBaudRate { get; set; } = 9600;
 
     public ViscaDeviceSettings() { }
 
@@ -27,6 +29,11 @@ public class ViscaDeviceSettings
             SendWaitTime = viscaIPDevice.SendWaitTime;
             UseHeader = viscaIPDevice.UseHeader;
             SingleCommand = viscaIPDevice.SingleCommand;
+        }
+        else if (viscaDevice is ViscaSerialDeviceBase serialDevice)
+        {
+            SerialPortName = serialDevice.PortName;
+            SerialBaudRate = serialDevice.BaudRate;
         }
     }
 }

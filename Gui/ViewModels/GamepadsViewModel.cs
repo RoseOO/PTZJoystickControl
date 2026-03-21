@@ -1,4 +1,5 @@
-﻿using PtzJoystickControl.Core.Devices;
+﻿using PtzJoystickControl.Core.Db;
+using PtzJoystickControl.Core.Devices;
 using PtzJoystickControl.Core.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,9 +16,13 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
     private IGamepad? _selectedGamepad;
     private IEnumerable<InputViewModel>? _inputViewModels = Enumerable.Empty<InputViewModel>();
 
-    public GamepadsViewModel(IGamepadsService gamepadsService)
+    public MappingProfileViewModel? MappingProfileViewModel { get; }
+
+    public GamepadsViewModel(IGamepadsService gamepadsService, IMappingProfileStore? mappingProfileStore = null)
     {
         _gamepadsService = gamepadsService;
+        if (mappingProfileStore != null)
+            MappingProfileViewModel = new MappingProfileViewModel(mappingProfileStore, this);
         SelectedGamepadInfo = _gamepadsService.Gamepads.FirstOrDefault(g => g.IsActivated);
     }
 
