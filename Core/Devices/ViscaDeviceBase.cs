@@ -32,6 +32,16 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
     protected byte presetCmdNumber;
     protected byte presetRecallSpeed = 0x04;
 
+    protected byte exposureModeCmd;
+    protected byte irisCmd;
+    protected byte shutterCmd;
+    protected byte gainCmd;
+    protected byte whiteBalanceModeCmd;
+    protected byte backlightCmd;
+    protected byte redGainCmd;
+    protected byte blueGainCmd;
+    protected byte apertureCmd;
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -122,4 +132,14 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
     public abstract void FocusLock(FocusLock focusMode);
     public abstract void Preset(Preset preset, byte presetNumber);
     public abstract void PresetRecallSpeed(byte value);
+    public abstract void SetExposureMode(ExposureMode mode);
+    public abstract void AdjustIris(IrisDir direction);
+    public abstract void AdjustShutter(ShutterDir direction);
+    public abstract void AdjustGain(GainDir direction);
+    public abstract void SetWhiteBalanceMode(WhiteBalanceMode mode);
+    public abstract void SetBacklightCompensation(BacklightCompensation mode);
+    public abstract void AdjustRedGain(GainDir direction);
+    public abstract void AdjustBlueGain(GainDir direction);
+    public abstract void AdjustAperture(ApertureDir direction);
+    public abstract void TriggerWhiteBalance();
 }

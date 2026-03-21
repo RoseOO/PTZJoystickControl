@@ -82,7 +82,9 @@ internal class Program
         services.RegisterConstant<ICameraSettingsStore>(new CameraSettingsStore());
         services.RegisterConstant<IGamepadSettingsStore>(new GamepadSettingsStore());
 
-        services.RegisterConstant<ICommandsService>(new CommandsService());
+        services.RegisterConstant<IVmixService>(new VmixService());
+        services.RegisterConstant<ICommandsService>(new CommandsService(
+            resolver.GetServiceOrThrow<IVmixService>()));
         services.RegisterConstant<ICamerasService>(new CamerasService(
             resolver.GetServiceOrThrow<ICameraSettingsStore>()));
         services.RegisterConstant<IGamepadsService>(new SdlGamepadsService(

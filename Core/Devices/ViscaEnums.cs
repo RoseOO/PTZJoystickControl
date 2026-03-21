@@ -37,9 +37,26 @@ public enum CommandType : byte
     PanTiltZoomDirect = 0x47,
     Focus = 0x08,
     FocusDirect = 0x48,
+    RGain = 0x03,
+    BGain = 0x04,
+    Shutter = 0x0A,
+    Iris = 0x0B,
+    Gain = 0x0C,
+    Bright = 0x0D,
+    ExposureMode = 0x39,
+    WhiteBalanceMode = 0x35,
+    RGainDirect = 0x43,
+    BGainDirect = 0x44,
+    ShutterDirect = 0x4A,
+    IrisDirect = 0x4B,
+    GainDirect = 0x4C,
+    BacklightCompensation = 0x33,
+    Aperture = 0x02,
+    ApertureDirect = 0x42,
     FocusMode = 0x38,
     FocusLock = 0x68, //This thinks it's special!? maybe custom command from PTZ Optics...
     Preset = 0x3F,
+    WhiteBalanceTrigger = 0x10,
 }
 
 public enum InquiryType : byte
@@ -108,6 +125,58 @@ public enum Preset : byte
     Recall = 0x02,
     Set = 0x01,
     Reset = 0x00,
+}
+
+public enum ExposureMode : byte
+{
+    Auto = 0x00,
+    Manual = 0x03,
+    ShutterPriority = 0x0A,
+    IrisPriority = 0x0B,
+    Bright = 0x0D,
+}
+
+public enum WhiteBalanceMode : byte
+{
+    Auto = 0x00,
+    Indoor = 0x01,
+    Outdoor = 0x02,
+    OnePush = 0x03,
+    Manual = 0x05,
+}
+
+public enum BacklightCompensation : byte
+{
+    On = 0x02,
+    Off = 0x03,
+}
+
+public enum GainDir : byte
+{
+    Reset = 0x00,
+    Up = 0x02,
+    Down = 0x03,
+}
+
+public enum IrisDir : byte
+{
+    Reset = 0x00,
+    Up = 0x02,
+    Down = 0x03,
+}
+
+public enum ShutterDir : byte
+{
+    Reset = 0x00,
+    Up = 0x02,
+    Down = 0x03,
+}
+
+public enum ApertureDir : byte
+{
+    Reset = 0x00,
+    Up = 0x02,
+    Down = 0x03,
 }
 
 public enum ViscaIPHeaderType : ushort
