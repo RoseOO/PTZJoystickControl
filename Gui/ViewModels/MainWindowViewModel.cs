@@ -45,6 +45,12 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
                 _overlayViewModel.Refresh();
             }
         };
+
+        // Subscribe to camera collection changes to update overlay
+        camerasViewModel.Cameras.CollectionChanged += (s, e) =>
+        {
+            _overlayViewModel.Refresh();
+        };
     }
 
     public bool AcrylicEnabled { get; }

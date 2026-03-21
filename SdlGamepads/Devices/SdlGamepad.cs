@@ -77,6 +77,9 @@ public class SdlGamepad : IGamepad
         {
             if (selectedCamera != value)
             {
+                // Stop all movements on the previously selected camera
+                StopCameraMovement(selectedCamera);
+
                 selectedCamera = value;
                 NotifyPropertyChanged();
             }
@@ -176,5 +179,16 @@ public class SdlGamepad : IGamepad
     {
         if (inputs.TryGetValue(AxisNames[jaxis.axis], out var input))
             input.InputValue = Util.Map(jaxis.axisValue, short.MinValue, short.MaxValue, -1, 1);
+    }
+
+    private void StopCameraMovement(ViscaDeviceBase? camera)
+    {
+        if (camera == null)
+            return;
+
+        // Send stop commands for pan, tilt, and zoom
+        camera.Pan(0, PanDir.Stop);
+        camera.Tilt(0, TiltDir.Stop);
+        camera.Zoom(0, ZoomDir.Stop);
     }
 }

@@ -110,4 +110,15 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    private void StopCameraMovement(ViscaDeviceBase? camera)
+    {
+        if (camera == null)
+            return;
+
+        // Send stop commands for pan, tilt, and zoom
+        camera.Pan(0, PanDir.Stop);
+        camera.Tilt(0, TiltDir.Stop);
+        camera.Zoom(0, ZoomDir.Stop);
+    }
 }

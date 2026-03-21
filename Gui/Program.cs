@@ -79,16 +79,16 @@ internal class Program
             "PTZJoystickControl",
             Assembly.GetExecutingAssembly().GetName().Version!));
 
-        services.RegisterConstant<ICameraSettingsStore>(new CameraSettingsStore());
-        services.RegisterConstant<IGamepadSettingsStore>(new GamepadSettingsStore());
-        services.RegisterConstant<IMappingProfileStore>(new MappingProfileStore());
+        services.RegisterLazySingleton<ICameraSettingsStore>(() => new CameraSettingsStore());
+        services.RegisterLazySingleton<IGamepadSettingsStore>(() => new GamepadSettingsStore());
+        services.RegisterLazySingleton<IMappingProfileStore>(() => new MappingProfileStore());
 
-        services.RegisterConstant<IVmixService>(new VmixService());
-        services.RegisterConstant<ICommandsService>(new CommandsService(
+        services.RegisterLazySingleton<IVmixService>(() => new VmixService());
+        services.RegisterLazySingleton<ICommandsService>(() => new CommandsService(
             resolver.GetServiceOrThrow<IVmixService>()));
-        services.RegisterConstant<ICamerasService>(new CamerasService(
+        services.RegisterLazySingleton<ICamerasService>(() => new CamerasService(
             resolver.GetServiceOrThrow<ICameraSettingsStore>()));
-        services.RegisterConstant<IGamepadsService>(new SdlGamepadsService(
+        services.RegisterLazySingleton<IGamepadsService>(() => new SdlGamepadsService(
             resolver.GetServiceOrThrow<IGamepadSettingsStore>(),
             resolver.GetServiceOrThrow<ICamerasService>(),
             resolver.GetServiceOrThrow<ICommandsService>()));

@@ -9,6 +9,7 @@ using Splat;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using PtzJoystickControl.Core.Services;
 
 namespace PtzJoystickControl.Gui
@@ -31,16 +32,7 @@ namespace PtzJoystickControl.Gui
                 return;
             }
 
-            var camerasViewModel = Locator.Current.GetServiceOrThrow<CamerasViewModel>();
-
             var mainWindow = new MainWindow();
-            var mainWindowViewModel = new MainWindowViewModel(
-                Locator.Current.GetServiceOrThrow<GamepadsViewModel>(),
-                camerasViewModel,
-                Locator.Current.GetServiceOrThrow<CameraControlViewModel>(),
-                Locator.Current.GetServiceOrThrow<VmixViewModel>(),
-                mainWindow);
-            mainWindow.DataContext = mainWindowViewModel;
 
             mainWindow.Closing += (object? s, CancelEventArgs e) =>
             {   // Prevent closnig to keep application running in background
@@ -53,24 +45,43 @@ namespace PtzJoystickControl.Gui
             trayIconHandler.OnUpdateCheckClicked += (object? s, EventArgs e) => CheckForUpdate(true);
             trayIconHandler.OnQuitClicked += (object? s, EventArgs e) => desktop.Shutdown();
 
-            camerasViewModel.PropertyChanged += (object? s, PropertyChangedEventArgs e) =>
-            {
-                if (e.PropertyName == nameof(CamerasViewModel.SelectedCamera))
-                {
-                    var updateIcon = () => trayIconHandler.UpdateIcon(camerasViewModel.Cameras.IndexOf(camerasViewModel.SelectedCamera!) + 1);
-                    if (Dispatcher.UIThread.CheckAccess())
-                        updateIcon();
-                    else
-                        Dispatcher.UIThread.InvokeAsync(updateIcon);
-                }
-            };
-
             void onStartup(object? s, ControlledApplicationLifetimeStartupEventArgs e)
             {
+                // Defer initialization of ViewModels and services until after window is shown
+                Task.Run(() =>
+                {
+                    var camerasViewModel = Locator.Current.GetServiceOrThrow<CamerasViewModel>();
+
+                    var mainWindowViewModel = new MainWindowViewModel(
+                        Locator.Current.GetServiceOrThrow<GamepadsViewModel>(),
+                        camerasViewModel,
+                        Locator.Current.GetServiceOrThrow<CameraControlViewModel>(),
+                        Locator.Current.GetServiceOrThrow<VmixViewModel>(),
+                        mainWindow);
+
+                    camerasViewModel.PropertyChanged += (object? s, PropertyChangedEventArgs e) =>
+                    {
+                        if (e.PropertyName == nameof(CamerasViewModel.SelectedCamera))
+                        {
+                            var updateIcon = () => trayIconHandler.UpdateIcon(camerasViewModel.Cameras.IndexOf(camerasViewModel.SelectedCamera!) + 1);
+                            if (Dispatcher.UIThread.CheckAccess())
+                                updateIcon();
+                            else
+                                Dispatcher.UIThread.InvokeAsync(updateIcon);
+                        }
+                    };
+
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        mainWindow.DataContext = mainWindowViewModel;
+                    });
+                });
+
                 if (e.Args.Contains("-m"))
                     mainWindow.WindowState = WindowState.Minimized;
 
-                CheckForUpdate();
+                // Run update check asynchronously without blocking startup
+                _ = Task.Run(() => CheckForUpdate());
 
                 desktop.Startup -= onStartup;
             };
