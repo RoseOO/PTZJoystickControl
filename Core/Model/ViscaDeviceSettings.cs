@@ -30,7 +30,7 @@ public class ViscaDeviceSettings
             UseHeader = viscaIPDevice.UseHeader;
             SingleCommand = viscaIPDevice.SingleCommand;
         }
-        else if(viscaDevice is ViscaSerialDeviceBase serialDevice)
+        else if (viscaDevice is ViscaSerialDeviceBase serialDevice)
         {
             SerialPortName = serialDevice.PortName;
             SerialBaudRate = serialDevice.BaudRate;

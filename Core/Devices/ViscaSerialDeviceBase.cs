@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace PtzJoystickControl.Core.Devices;
 
 public abstract class ViscaSerialDeviceBase : ViscaDeviceBase
