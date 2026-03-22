@@ -21,6 +21,8 @@ public class CameraToCameraViewConverter : IValueConverter
             return null;
 
         var type = value.GetType();
+        if (type.IsAssignableTo(typeof(ViscaTcpSerialDeviceBase)))
+            return new TcpSerialCameraViewModel((ViscaTcpSerialDeviceBase)value);
         if (type.IsAssignableTo(typeof(ViscaIPDeviceBase)))
             return new IPCameraViewModel((ViscaIPDeviceBase)value);
         if (type.IsAssignableTo(typeof(ViscaSerialDeviceBase)))

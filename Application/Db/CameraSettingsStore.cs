@@ -50,6 +50,10 @@ namespace PtzJoystickControl.Application.Db
                             viscaIPDevice.Protocol = viscaDeviceSettings.Protocol;
                             viscaIPDevice.SendWaitTime = viscaDeviceSettings.SendWaitTime;
                             viscaIPDevice.UseHeader = viscaDeviceSettings.UseHeader;
+                            if (viscaIPDevice is ViscaTcpSerialDeviceBase tcpSerialDevice)
+                            {
+                                tcpSerialDevice.SendAddressSet = viscaDeviceSettings.SendAddressSet;
+                            }
                             viscaIPDevice.BeginSocket();
                         }
                         else if (viscaDevice is ViscaSerialDeviceBase serialDevice)
