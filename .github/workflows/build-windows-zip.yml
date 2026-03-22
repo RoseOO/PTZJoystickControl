@@ -18,6 +18,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Extract version from release tag
+      id: version
+      shell: bash
+      run: |
+        version="${{ github.event.release.tag_name }}"
+        version="${version#v}"
+        echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
     - name: Install .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -25,9 +33,10 @@ jobs:
 
     - name: Publish application
       run: |
-        dotnet publish Gui/Gui.csproj -c Release -r $env:Runtime --self-contained -o publish/$env:Runtime
+        dotnet publish Gui/Gui.csproj -c Release -r $env:Runtime --self-contained -o publish/$env:Runtime -p:Version=$env:AppVersion
       env:
         Runtime: ${{ format('win-{0}', matrix.arch) }}
+        AppVersion: ${{ steps.version.outputs.VERSION }}
 
     - name: Create zip archive
       run: |
