@@ -24,46 +24,48 @@
           <Grid Grid.Column="0" ColumnDefinitions="30,30,30,20,30,30,30" RowDefinitions="30,30,30" Margin="0,2">
             <!-- Row 0 -->
             <Button Grid.Row="0" Grid.Column="0" Content="↖" Width="30" Height="30" Margin="1"
-                    Tag="MoveUpLeft" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="MoveUpLeft" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <Button Grid.Row="0" Grid.Column="1" Content="↑" Width="30" Height="30" Margin="1"
-                    Tag="TiltUp" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="TiltUp" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <Button Grid.Row="0" Grid.Column="2" Content="↗" Width="30" Height="30" Margin="1"
-                    Tag="MoveUpRight" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="MoveUpRight" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
             <Button Grid.Row="0" Grid.Column="4" Content="Z+" Width="30" Height="30" Margin="1"
-                    Tag="ZoomIn" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="ZoomIn" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     ToolTip.Tip="Zoom In (Tele)"/>
             <!-- Row 1 -->
             <Button Grid.Row="1" Grid.Column="0" Content="←" Width="30" Height="30" Margin="1"
-                    Tag="PanLeft" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="PanLeft" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <Button Grid.Row="1" Grid.Column="1" Content="■" Width="30" Height="30" Margin="1"
-                    Command="{Binding MoveStop}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Tag="MoveStopBtn" PointerPressed="OnPtzButtonPressed"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     ToolTip.Tip="Stop All Movement"/>
             <Button Grid.Row="1" Grid.Column="2" Content="→" Width="30" Height="30" Margin="1"
-                    Tag="PanRight" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="PanRight" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
             <Button Grid.Row="1" Grid.Column="4" Content="Z■" Width="30" Height="30" Margin="1"
-                    Command="{Binding ZoomStop}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Tag="ZoomStopBtn" PointerPressed="OnPtzButtonPressed"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     ToolTip.Tip="Zoom Stop"/>
             <!-- Row 2 -->
             <Button Grid.Row="2" Grid.Column="0" Content="↙" Width="30" Height="30" Margin="1"
-                    Tag="MoveDownLeft" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="MoveDownLeft" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <Button Grid.Row="2" Grid.Column="1" Content="↓" Width="30" Height="30" Margin="1"
-                    Tag="TiltDown" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="TiltDown" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <Button Grid.Row="2" Grid.Column="2" Content="↘" Width="30" Height="30" Margin="1"
-                    Tag="MoveDownRight" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="MoveDownRight" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
             <Button Grid.Row="2" Grid.Column="4" Content="Z-" Width="30" Height="30" Margin="1"
-                    Tag="ZoomOut" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"
+                    Tag="ZoomOut" PointerPressed="OnPtzButtonPressed"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     ToolTip.Tip="Zoom Out (Wide)"/>
           </Grid>
@@ -126,10 +128,11 @@
         <TextBlock Text="Focus" FontWeight="Bold" FontSize="13"/>
         <StackPanel Orientation="Horizontal" Spacing="2">
           <Button Content="Far" Width="40" Height="28" FontSize="11"
-                  Tag="FocusFar" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"/>
-          <Button Content="Stop" Width="40" Height="28" Command="{Binding FocusStop}" FontSize="11"/>
+                  Tag="FocusFar" PointerPressed="OnPtzButtonPressed"/>
+          <Button Content="Stop" Width="40" Height="28" FontSize="11"
+                  Tag="FocusStopBtn" PointerPressed="OnPtzButtonPressed"/>
           <Button Content="Near" Width="40" Height="28" FontSize="11"
-                  Tag="FocusNear" PointerPressed="OnPtzButtonPressed" PointerReleased="OnPtzButtonReleased"/>
+                  Tag="FocusNear" PointerPressed="OnPtzButtonPressed"/>
           <Border Width="10"/>
           <Button Content="Auto" Width="46" Height="28" Command="{Binding FocusAuto}" FontSize="11"/>
           <Button Content="Manual" Width="52" Height="28" Command="{Binding FocusManual}" FontSize="11"/>

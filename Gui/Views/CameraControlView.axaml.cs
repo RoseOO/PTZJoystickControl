@@ -1,9 +1,9 @@
 using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using PtzJoystickControl.Core.Devices;
@@ -33,7 +33,7 @@ public partial class CameraControlView : UserControl
     private PanDir _targetPanDir = PanDir.Stop;
     private TiltDir _targetTiltDir = TiltDir.Stop;
     private DateTime _lastRampUpdate = DateTime.UtcNow;
-    private Timer? _rampTimer;
+    private DispatcherTimer? _rampTimer;
     private volatile bool _rampActive;
 
     public CameraControlView()
@@ -56,13 +56,16 @@ public partial class CameraControlView : UserControl
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        // Reset state when attached
+        // Register PointerReleased with handledEventsToo so we get the event
+        // even after Button controls mark it as handled
+        this.AddHandler(PointerReleasedEvent, OnPtzButtonReleased, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
     private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
         // Cleanup timer when control is removed
         StopRampTimer();
+        this.RemoveHandler(PointerReleasedEvent, OnPtzButtonReleased);
     }
 
     private void InitializeComponent()
@@ -92,15 +95,36 @@ public partial class CameraControlView : UserControl
             case "ZoomOut": vm.ZoomOut(); break;
             case "FocusFar": vm.FocusFar(); break;
             case "FocusNear": vm.FocusNear(); break;
+            case "MoveStopBtn": vm.MoveStop(); break;
+            case "ZoomStopBtn": vm.ZoomStop(); break;
+            case "FocusStopBtn": vm.FocusStop(); break;
         }
     }
 
     private void OnPtzButtonReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (sender is not Control control || DataContext is not CameraControlViewModel vm)
+        if (DataContext is not CameraControlViewModel vm)
             return;
 
-        var tag = control.Tag?.ToString();
+        // Walk up from the event source to find the tagged Button
+        string? tag = null;
+        if (e.Source is IControl source)
+        {
+            var current = source;
+            while (current != null && current != this)
+            {
+                if (current is Control c && c.Tag is string t && !string.IsNullOrEmpty(t))
+                {
+                    tag = t;
+                    break;
+                }
+                current = current.Parent as IControl;
+            }
+        }
+
+        if (tag == null)
+            return;
+
         switch (tag)
         {
             case "MoveUpLeft":
@@ -236,18 +260,24 @@ public partial class CameraControlView : UserControl
         if (_rampActive) return;
         _rampActive = true;
         _lastRampUpdate = DateTime.UtcNow;
-        _rampTimer?.Dispose();
-        _rampTimer = new Timer(RampTimerTick, null, 0, RampUpdateIntervalMs);
+        _rampTimer?.Stop();
+        _rampTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(RampUpdateIntervalMs) };
+        _rampTimer.Tick += RampTimerTick;
+        _rampTimer.Start();
     }
 
     private void StopRampTimer()
     {
         _rampActive = false;
-        _rampTimer?.Dispose();
-        _rampTimer = null;
+        if (_rampTimer != null)
+        {
+            _rampTimer.Stop();
+            _rampTimer.Tick -= RampTimerTick;
+            _rampTimer = null;
+        }
     }
 
-    private void RampTimerTick(object? state)
+    private void RampTimerTick(object? sender, EventArgs e)
     {
         try
         {
@@ -280,18 +310,13 @@ public partial class CameraControlView : UserControl
             {
                 _currentPanSpeed = 0;
                 _currentTiltSpeed = 0;
-                // Send final stop on UI thread, then stop the timer
-                Dispatcher.UIThread.Post(() =>
-                {
-                    if (DataContext is CameraControlViewModel vm2)
-                        vm2.MoveStop();
-                });
+                vm.MoveStop();
                 StopRampTimer();
                 return;
             }
 
-            // Send the ramped command on UI thread
-            Dispatcher.UIThread.Post(() => SendPanTiltCommand(vm));
+            // Send the ramped command (already on UI thread via DispatcherTimer)
+            SendPanTiltCommand(vm);
         }
         catch (Exception ex)
         {
