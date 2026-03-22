@@ -59,8 +59,9 @@ public partial class CameraControlView : UserControl
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        // Register PointerReleased with handledEventsToo so we get the event
-        // even after Button controls mark it as handled
+        // Register with handledEventsToo so we get the events
+        // even after Button controls mark them as handled
+        this.AddHandler(PointerPressedEvent, OnPtzButtonPressed, RoutingStrategies.Bubble, handledEventsToo: true);
         this.AddHandler(PointerReleasedEvent, OnPtzButtonReleased, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
@@ -68,6 +69,7 @@ public partial class CameraControlView : UserControl
     {
         // Cleanup timer when control is removed
         StopRampTimer();
+        this.RemoveHandler(PointerPressedEvent, OnPtzButtonPressed);
         this.RemoveHandler(PointerReleasedEvent, OnPtzButtonReleased);
     }
 
@@ -80,10 +82,25 @@ public partial class CameraControlView : UserControl
 
     private void OnPtzButtonPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Control control || DataContext is not CameraControlViewModel vm)
+        if (DataContext is not CameraControlViewModel vm)
             return;
 
-        var tag = control.Tag?.ToString();
+        // Walk up from the event source to find the tagged Button
+        string? tag = null;
+        if (e.Source is IControl source)
+        {
+            var current = source;
+            while (current != null && current != this)
+            {
+                if (current is Control c && c.Tag is string t && !string.IsNullOrEmpty(t))
+                {
+                    tag = t;
+                    break;
+                }
+                current = current.Parent as IControl;
+            }
+        }
+
         if (string.IsNullOrEmpty(tag))
             return;
 

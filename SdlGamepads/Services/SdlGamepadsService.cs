@@ -27,15 +27,19 @@ public class SdlGamepadsService : IGamepadsService
         _camerasService = camerasService;
         _commandsService = commandsService;
 
-        _gamppadSettingsDb.GetAllGamepadSettings().ForEach(x => Gamepads.Add(new SdlGamepadInfo()
-        {
-            Id = x.Id,
-            Name = x.Name,
-            IsConnected = false,
-            IsActivated = x.IsActivated,
-            DeviceIndex = -1,
-            InstanceId = -1
-        }));
+        // Only load SDL joystick settings (exclude Keyboard, MIDI:, OSC:)
+        _gamppadSettingsDb.GetAllGamepadSettings()
+            .Where(x => !x.Id.StartsWith("Keyboard") && !x.Id.StartsWith("MIDI:") && !x.Id.StartsWith("OSC:"))
+            .ToList()
+            .ForEach(x => Gamepads.Add(new SdlGamepadInfo()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                IsConnected = false,
+                IsActivated = x.IsActivated,
+                DeviceIndex = -1,
+                InstanceId = -1
+            }));
 
         Task.Run(UpdateLoop);
     }
