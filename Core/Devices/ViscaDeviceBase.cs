@@ -299,7 +299,7 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"PollCamera {name}: {e.Message}");
+            Debug.WriteLine($"[{Name}] PollCamera Error: {e.Message}");
         }
     }
 }

@@ -10,7 +10,7 @@
 		MinWidth="400"
 		MinHeight="200">
 	<Grid RowDefinitions="Auto,*,Auto">
-		<TextBlock Grid.Row="0" Text="Debug Log — All VISCA commands, connection events, and camera feedback are logged below."
+		<TextBlock Grid.Row="0" Text="Debug Log -- All VISCA commands, connection events, and camera feedback are logged below."
 				   Margin="8,6" FontSize="12" Foreground="#999999"/>
 		<ScrollViewer Grid.Row="1" Margin="4">
 			<TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True"
