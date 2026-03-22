@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -50,8 +51,8 @@ namespace PtzJoystickControl.Gui.ViewModels
 
             public override void WriteLine(string? message)
             {
-                logWindowViewModel.Log += $"{message}\n";
-
+                var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+                logWindowViewModel.Log += $"[{timestamp}] {message}\n";
             }
         }
 

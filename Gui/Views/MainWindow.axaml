@@ -49,6 +49,7 @@
 			<StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4" Spacing="6">
 				<TextBlock Text="Camera Controls" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
 				<Button Content="Overlay" Command="{Binding ToggleOverlay}" FontSize="11" Padding="8,2" VerticalAlignment="Center"/>
+				<Button Content="Debug Log" Command="{Binding ToggleDebugLog}" FontSize="11" Padding="8,2" VerticalAlignment="Center"/>
 			</StackPanel>
 			<v:CameraControlView Grid.Row="1" DataContext="{Binding CameraControlViewModel}"/>
 		</Grid>

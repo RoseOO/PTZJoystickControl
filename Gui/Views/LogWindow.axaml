@@ -4,11 +4,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="PtzJoystickControl.Gui.Views.LogWindow"
-        Title="LogWindow">
-	<Grid RowDefinitions="*,Auto">
-		<ScrollViewer Grid.Row="0">
-			<TextPresenter Text="{Binding Log}"/>
+        Title="Debug Log - PTZ Joystick Control"
+		Width="900"
+		Height="500"
+		MinWidth="400"
+		MinHeight="200">
+	<Grid RowDefinitions="Auto,*,Auto">
+		<TextBlock Grid.Row="0" Text="Debug Log -- All VISCA commands, connection events, and camera feedback are logged below."
+				   Margin="8,6" FontSize="12" Foreground="#999999"/>
+		<ScrollViewer Grid.Row="1" Margin="4">
+			<TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True"
+					 FontFamily="Consolas,Courier New,monospace" FontSize="12"
+					 Background="#1e1e1e" Foreground="#d4d4d4"
+					 BorderThickness="0"/>
 		</ScrollViewer>
-		<Button Grid.Row="1" Content="Clear Log" Command="{Binding ClearLog}"/>
+		<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="8,4">
+			<Button Content="Clear Log" Command="{Binding ClearLog}" Padding="12,4"/>
+		</StackPanel>
 	</Grid>
 </Window>

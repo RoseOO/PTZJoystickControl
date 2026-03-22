@@ -52,7 +52,7 @@ public class UdpSocket
             EndPoint remoteEndPoint = currentRemoteEndPoint;
             var length = socket?.EndReceiveFrom(res, ref remoteEndPoint) ?? 0;
 
-            Debug.WriteLine($"UDP OnReceive: {remoteEndPoint} - {BitConverter.ToString(_buffer, 0, length)}");
+            Debug.WriteLine($"UDP OnReceive <- {remoteEndPoint}: {BitConverter.ToString(_buffer, 0, length)}");
             if (length > 0 && receiveCallbacks.TryGetValue(remoteEndPoint, out var callback))
                 callback(_buffer, length);
 

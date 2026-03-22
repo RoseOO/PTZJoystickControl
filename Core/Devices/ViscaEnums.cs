@@ -61,7 +61,24 @@ public enum CommandType : byte
 
 public enum InquiryType : byte
 {
-    Power = 0x00
+    Power = 0x00,
+    Zoom = 0x47,
+    Focus = 0x48,
+    FocusMode = 0x38,
+    ExposureMode = 0x39,
+    Iris = 0x4B,
+    Shutter = 0x4A,
+    Gain = 0x4C,
+    WhiteBalanceMode = 0x35,
+    RGain = 0x43,
+    BGain = 0x44,
+    Aperture = 0x42,
+    BacklightCompensation = 0x33,
+}
+
+public enum PanTiltInquiryType : byte
+{
+    Position = 0x12,
 }
 
 public enum ReplyType : byte
