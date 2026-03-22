@@ -31,7 +31,18 @@ public class IPCameraViewModel : ViewModelBase, INotifyPropertyChanged
     public string Name
     {
         get => _camera.Name;
-        set => _camera.Name = value;
+        set
+        {
+            try
+            {
+                _camera.Name = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
 
@@ -50,7 +61,18 @@ public class IPCameraViewModel : ViewModelBase, INotifyPropertyChanged
     public Protocol Protocol
     {
         get => _camera.Protocol;
-        set => _camera.Protocol = value;
+        set
+        {
+            try
+            {
+                _camera.Protocol = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
     public int SendWaitTime

@@ -123,8 +123,15 @@ public abstract class ViscaIPDeviceBase : ViscaDeviceBase
 
     private void OnSocketPropChange([CallerMemberName] string propertyName = "")
     {
-        EndSocket();
-        BeginSocket();
+        try
+        {
+            EndSocket();
+            BeginSocket();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"[{Name}] OnSocketPropChange Error: {e.Message}");
+        }
         NotifyPropertyChanged(propertyName);
         NotifyPersistentPropertyChanged(propertyName);
     }

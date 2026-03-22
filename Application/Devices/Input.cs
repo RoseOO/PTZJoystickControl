@@ -34,6 +34,9 @@ public class Input : IInput
     private float targetValue = 0;
     private float currentRampedValue = 0;
     private DateTime lastUpdateTime = DateTime.UtcNow;
+    private Timer? _rampTimer;
+    private const int RampTimerIntervalMs = 20;
+    private readonly object _executeLock = new();
 
     private Input(string id, string name, InputType inputType, IEnumerable<ICommand> commands, bool isSecondInput)
     {
@@ -108,6 +111,7 @@ public class Input : IInput
                 // Reset ramping state when disabled
                 currentRampedValue = 0;
                 targetValue = 0;
+                StopRampTimer();
             }
             NotifyPersistentPropertyChanged();
         }
@@ -260,6 +264,8 @@ public class Input : IInput
 
     private void ExecuteCommand()
     {
+        lock (_executeLock)
+        {
         if (command is IDynamicCommand dynCommand)
         {
             if (InputType == InputType.Axis)
@@ -397,6 +403,7 @@ public class Input : IInput
 
             if (executeCommand) statCommand.Execute(commandValue!);
         }
+        } // lock
     }
 
     private float ApplyRamping(float targetValue, float minValue, float maxValue)
@@ -404,6 +411,9 @@ public class Input : IInput
         DateTime now = DateTime.UtcNow;
         float deltaTime = (float)(now - lastUpdateTime).TotalSeconds;
         lastUpdateTime = now;
+
+        // Cap deltaTime to prevent large jumps after long gaps between events
+        deltaTime = Math.Min(deltaTime, 0.05f);
 
         // Calculate how much we can change per second
         float rampSpeed = (maxValue - minValue) / rampTime;
@@ -421,7 +431,39 @@ public class Input : IInput
             currentRampedValue += Math.Sign(delta) * maxChange;
         }
 
+        // Start or stop ramp timer based on whether ramping is complete
+        if (Math.Abs(targetValue - currentRampedValue) > 0.001f)
+            StartRampTimer();
+        else
+            StopRampTimer();
+
         return currentRampedValue;
+    }
+
+    private void StartRampTimer()
+    {
+        if (_rampTimer == null)
+        {
+            _rampTimer = new Timer(OnRampTimerTick, null, RampTimerIntervalMs, RampTimerIntervalMs);
+        }
+    }
+
+    private void StopRampTimer()
+    {
+        _rampTimer?.Dispose();
+        _rampTimer = null;
+    }
+
+    private void OnRampTimerTick(object? state)
+    {
+        if (!enableRamping || command == null)
+        {
+            StopRampTimer();
+            return;
+        }
+
+        // Re-execute the command to continue ramping
+        ExecuteCommand();
     }
 
     public event PropertyChangedEventHandler? PersistentPropertyChanged;

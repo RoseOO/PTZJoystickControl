@@ -23,6 +23,9 @@ public class SdlGamepad : IGamepad
         "Axis 5",
     };
     private const string buttonNameFormatString = "Button {0}";
+    private const string hatButtonNameFormatString = "DPad {0} {1}";
+    private static readonly string[] HatDirectionNames = new string[] { "Up", "Right", "Down", "Left" };
+    private static readonly byte[] HatDirectionMasks = new byte[] { SDL.SDL_HAT_UP, SDL.SDL_HAT_RIGHT, SDL.SDL_HAT_DOWN, SDL.SDL_HAT_LEFT };
     private List<ICommand> commands;
     private bool isActivated;
     private bool isConnected;
@@ -149,23 +152,19 @@ public class SdlGamepad : IGamepad
             inputs.Add(id, newInput);
         }
 
-        //for (int i = 0; i < Capabilities.PovCount; i++)
-        //{
-        //    JoystickOffset offset = Enum.Parse<JoystickOffset>("PointOfViewControllers" + i);
-        //    try
-        //    {
-        //        DeviceObjectInstance inputObj = GetObjectInfoByName(offset.ToString());
-        //        IInput newInput = new Input(inputObj.Name, InputType.Button, (int)offset, commands.AsReadOnly());
-        //        newInput.PersistentPropertyChanged += (sender, e) => NotifyPersistentPropertyChanged("");
-        //        inputs.Add((int)offset, newInput);
-        //    }
-        //    catch { }
-        //}
-
-        //SDL.SDL_JoystickNumAxes(j)
-        //SDL.SDL_JoystickNumButtons(j)
-        //SDL.SDL_JoystickNumHats(j)
-        //SDL.SDL_JoystickNumBalls(j)
+        //Get Hat/DPad inputs
+        var numHats = SDL.SDL_JoystickNumHats(sdlJoystickPointer);
+        for (int i = 0; i < numHats; i++)
+        {
+            for (int d = 0; d < HatDirectionNames.Length; d++)
+            {
+                var name = string.Format(hatButtonNameFormatString, i + 1, HatDirectionNames[d]);
+                var id = string.Format(hatButtonNameFormatString, i, HatDirectionNames[d]);
+                IInput newInput = new Input(name, id, InputType.Button, commands.AsReadOnly());
+                newInput.PersistentPropertyChanged += (sender, e) => NotifyPersistentPropertyChanged("");
+                inputs.Add(id, newInput);
+            }
+        }
     }
 
     public void Acquire()
@@ -197,6 +196,16 @@ public class SdlGamepad : IGamepad
     {
         if (inputs.TryGetValue(string.Format(buttonNameFormatString, jbutton.button), out var input))
             input.InputValue = jbutton.state;
+    }
+
+    internal void OnHatEvent(SDL.SDL_JoyHatEvent jhat)
+    {
+        for (int d = 0; d < HatDirectionNames.Length; d++)
+        {
+            var id = string.Format(hatButtonNameFormatString, jhat.hat, HatDirectionNames[d]);
+            if (inputs.TryGetValue(id, out var input))
+                input.InputValue = (jhat.hatValue & HatDirectionMasks[d]) != 0 ? 1 : 0;
+        }
     }
 
     internal void OnAxisEvent(SDL.SDL_JoyAxisEvent jaxis)

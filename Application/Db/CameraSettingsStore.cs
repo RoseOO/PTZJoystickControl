@@ -78,7 +78,7 @@ namespace PtzJoystickControl.Application.Db
         {
             try
             {
-                var viscaDeviceSettings = viscaDevices.Select(viscaDevice => new ViscaDeviceSettings(viscaDevice));
+                var viscaDeviceSettings = viscaDevices.ToList().Select(viscaDevice => new ViscaDeviceSettings(viscaDevice));
                 string serializedViscaDeviceSettings = JsonSerializer.Serialize(viscaDeviceSettings);
                 File.WriteAllText(_cameratFilePath, serializedViscaDeviceSettings);
                 return true;

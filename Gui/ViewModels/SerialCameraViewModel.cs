@@ -1,9 +1,11 @@
+using Avalonia.Data;
 using Avalonia.Utilities;
 using PtzJoystickControl.Application.Devices;
 using PtzJoystickControl.Core.Devices;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace PtzJoystickControl.Gui.ViewModels;
@@ -30,19 +32,52 @@ public class SerialCameraViewModel : ViewModelBase, INotifyPropertyChanged
     public string Name
     {
         get => _camera.Name;
-        set => _camera.Name = value;
+        set
+        {
+            try
+            {
+                _camera.Name = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
     public string PortName
     {
         get => _camera.PortName;
-        set => _camera.PortName = value;
+        set
+        {
+            try
+            {
+                _camera.PortName = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
     public int BaudRate
     {
         get => _camera.BaudRate;
-        set => _camera.BaudRate = value;
+        set
+        {
+            try
+            {
+                _camera.BaudRate = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
     public bool Connected { get => _camera.Connected; }

@@ -92,6 +92,7 @@ public class SdlGamepadsService2 //: IGamepadsService
                 input.Inverted = storedInput.Inverted;
                 input.Saturation = storedInput.DeadZoneHigh;
                 input.DeadZone = storedInput.DeadZoneLow;
+                input.DefaultCenter = storedInput.DefaultCenter;
             }
         }
 

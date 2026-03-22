@@ -133,6 +133,7 @@ public class SdlGamepadsService : IGamepadsService
                 input.Inverted = storedInput.Inverted;
                 input.Saturation = storedInput.DeadZoneHigh;
                 input.DeadZone = storedInput.DeadZoneLow;
+                input.DefaultCenter = storedInput.DefaultCenter;
                 input.EnableRamping = storedInput.EnableRamping;
                 input.RampTime = storedInput.RampTime;
                 if(input.SecondInput != null && storedInput.SecondInputSettings != null) {
@@ -171,6 +172,7 @@ public class SdlGamepadsService : IGamepadsService
                         case SDL.SDL_EventType.SDL_JOYBALLMOTION:
                             break;
                         case SDL.SDL_EventType.SDL_JOYHATMOTION:
+                            OnJoystickHatMotion(sdlEvent.jhat);
                             break;
                         case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
                         case SDL.SDL_EventType.SDL_JOYBUTTONUP:
@@ -217,17 +219,22 @@ public class SdlGamepadsService : IGamepadsService
     private void OnJoystickAxisMotion(SDL.SDL_JoyAxisEvent jaxis)
     {
         var instanceId = jaxis.which;
-        ActiveGamepads.Cast<SdlGamepad>()
-            .First(g => g.InstanceId == instanceId)
-            .OnAxisEvent(jaxis);
+        var gamepad = ActiveGamepads.Cast<SdlGamepad>().FirstOrDefault(g => g.InstanceId == instanceId);
+        gamepad?.OnAxisEvent(jaxis);
     }
 
     private void OnJoystickButtonEvent(SDL.SDL_JoyButtonEvent jbutton)
     {
         var instanceId = jbutton.which;
-        ActiveGamepads.Cast<SdlGamepad>()
-            .First(g => g.InstanceId == instanceId)
-            .OnButtonEvent(jbutton);
+        var gamepad = ActiveGamepads.Cast<SdlGamepad>().FirstOrDefault(g => g.InstanceId == instanceId);
+        gamepad?.OnButtonEvent(jbutton);
+    }
+
+    private void OnJoystickHatMotion(SDL.SDL_JoyHatEvent jhat)
+    {
+        var instanceId = jhat.which;
+        var gamepad = ActiveGamepads.Cast<SdlGamepad>().FirstOrDefault(g => g.InstanceId == instanceId);
+        gamepad?.OnHatEvent(jhat);
     }
 
     private void OnJoystickAdded(SDL.SDL_JoyDeviceEvent jdevice)
