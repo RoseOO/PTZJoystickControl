@@ -194,12 +194,12 @@ public class ViscaIpDevice : ViscaIPDeviceBase
 
     public override void Pan(byte panSpeed, PanDir panDir)
     {
-        PanTilt(panSpeed, tiltSpeed, panDir, tiltDir);
+        PanTilt(panSpeed, 0, panDir, TiltDir.Stop);
     }
 
     public override void Tilt(byte tiltSpeed, TiltDir tiltDir)
     {
-        PanTilt(panSpeed, tiltSpeed, panDir, tiltDir);
+        PanTilt(0, tiltSpeed, PanDir.Stop, tiltDir);
     }
 
     public override void PanTilt(byte panSpeed, byte tiltSpeed, PanDir panDir, TiltDir tiltDir)
