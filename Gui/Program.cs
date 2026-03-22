@@ -8,6 +8,10 @@ using PtzJoystickControl.Application.Services;
 using PtzJoystickControl.Core.Db;
 using PtzJoystickControl.Core.Services;
 using PtzJoystickControl.SdlGamepads.Services;
+using PtzJoystickControl.KeyboardInput.Services;
+using PtzJoystickControl.MidiInput.Services;
+using PtzJoystickControl.OscInput.Services;
+using PtzJoystickControl.WebInterface.Services;
 using Splat;
 using System;
 using System.Diagnostics;
@@ -96,10 +100,28 @@ internal class Program
             resolver.GetServiceOrThrow<IVmixService>()));
         services.RegisterLazySingleton<ICamerasService>(() => new CamerasService(
             resolver.GetServiceOrThrow<ICameraSettingsStore>()));
-        services.RegisterLazySingleton<IGamepadsService>(() => new SdlGamepadsService(
-            resolver.GetServiceOrThrow<IGamepadSettingsStore>(),
+
+        // Register individual input device services
+        var gamepadSettingsStore = resolver.GetServiceOrThrow<IGamepadSettingsStore>();
+        var camerasService = resolver.GetServiceOrThrow<ICamerasService>();
+        var commandsService = resolver.GetServiceOrThrow<ICommandsService>();
+
+        var sdlService = new SdlGamepadsService(gamepadSettingsStore, camerasService, commandsService);
+        var keyboardService = new KeyboardGamepadsService(gamepadSettingsStore, camerasService, commandsService);
+        var midiService = new MidiGamepadsService(gamepadSettingsStore, camerasService, commandsService);
+        var oscService = new OscGamepadsService(gamepadSettingsStore, camerasService, commandsService);
+
+        // Register the keyboard service separately so it can receive key events
+        services.RegisterLazySingleton(() => keyboardService);
+
+        // Register the composite service that aggregates all input device types
+        services.RegisterLazySingleton<IGamepadsService>(() => new CompositeGamepadsService(
+            new IGamepadsService[] { sdlService, keyboardService, midiService, oscService }));
+
+        // Register the web interface service
+        services.RegisterLazySingleton(() => new WebInterfaceService(
             resolver.GetServiceOrThrow<ICamerasService>(),
-            resolver.GetServiceOrThrow<ICommandsService>()));
+            resolver.GetServiceOrThrow<IGamepadsService>()));
 
         services.RegisterLazySingleton(() => new GamepadsViewModel(
             resolver.GetServiceOrThrow<IGamepadsService>(),

@@ -11,6 +11,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using PtzJoystickControl.Core.Services;
+using PtzJoystickControl.KeyboardInput.Services;
+using PtzJoystickControl.WebInterface.Services;
 
 namespace PtzJoystickControl.Gui
 {
@@ -74,7 +76,34 @@ namespace PtzJoystickControl.Gui
                     Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         mainWindow.DataContext = mainWindowViewModel;
+
+                        // Wire keyboard input events to the KeyboardGamepadsService
+                        var keyboardService = Locator.Current.GetService<KeyboardGamepadsService>();
+                        if (keyboardService != null)
+                        {
+                            mainWindow.KeyDown += (sender, args) =>
+                            {
+                                if (keyboardService.OnKeyDown(args.Key.ToString()))
+                                    args.Handled = true;
+                            };
+                            mainWindow.KeyUp += (sender, args) =>
+                            {
+                                if (keyboardService.OnKeyUp(args.Key.ToString()))
+                                    args.Handled = true;
+                            };
+                        }
                     });
+
+                    // Start the web interface
+                    try
+                    {
+                        var webService = Locator.Current.GetService<WebInterfaceService>();
+                        webService?.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebInterface] Failed to start: {ex.Message}");
+                    }
                 });
 
                 if (e.Args.Contains("-m"))
