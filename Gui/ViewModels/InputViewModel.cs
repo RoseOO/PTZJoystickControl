@@ -37,7 +37,7 @@ public class InputViewModel : ViewModelBase, INotifyPropertyChanged
     public string OutputValue { get => $"{_input.CurrentDirection} {_input.CurrentValue}"; }
 
     public bool Inverted { get => _input.Inverted; set => _input.Inverted = value; }
-    public bool DefaultCenter { get => _input.DefaultCenter; set { _input.DefaultCenter = value; NotifyPropertyChanged(); NotifyPropertyChanged(nameof(MinValue)); } }
+    public bool DefaultCenter { get => _input.DefaultCenter; set { _input.DefaultCenter = value; NotifyPropertyChanged(); NotifyPropertyChanged(nameof(MinValue)); NotifyPropertyChanged(nameof(ShowAxisDirection)); } }
     public bool EnableRamping { get => _input.EnableRamping; set { _input.EnableRamping = value; NotifyPropertyChanged(); } }
     public float RampTime { get => _input.RampTime; set { _input.RampTime = value; NotifyPropertyChanged(); } }
     public bool IsAxis { get => InputType == InputType.Axis; }
@@ -71,6 +71,7 @@ public class InputViewModel : ViewModelBase, INotifyPropertyChanged
 
     public bool ShowSecondCommand { get => IsAxis && SelectedCommand is IStaticCommand && _secondInputViewModel != null; }
     public bool DisableDirection { get => IsAxis && _secondInputViewModel == null; }
+    public bool ShowAxisDirection { get => IsAxis && !DefaultCenter && SelectedCommand is IDynamicCommand; }
     public InputViewModel? SecondInputdiewModel { get => _secondInputViewModel; }
 
     private void OnInputPropertyCahnged(object? sender, PropertyChangedEventArgs e)
@@ -80,7 +81,10 @@ public class InputViewModel : ViewModelBase, INotifyPropertyChanged
         {
             NotifyPropertyChanged(nameof(IsCleared));
             if (IsAxis)
+            {
                 NotifyPropertyChanged(nameof(ShowSecondCommand));
+                NotifyPropertyChanged(nameof(ShowAxisDirection));
+            }
         }
 
         else if (e?.PropertyName == nameof(_input.CurrentValue) || e?.PropertyName == nameof(_input.CurrentDirection))
