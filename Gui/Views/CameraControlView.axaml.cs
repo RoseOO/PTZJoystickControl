@@ -36,6 +36,9 @@ public partial class CameraControlView : UserControl
     private DispatcherTimer? _rampTimer;
     private volatile bool _rampActive;
 
+    // Track the currently pressed PTZ button tag for reliable stop-on-release
+    private string? _activePtzButtonTag;
+
     public CameraControlView()
     {
         InitializeComponent();
@@ -81,6 +84,13 @@ public partial class CameraControlView : UserControl
             return;
 
         var tag = control.Tag?.ToString();
+        if (string.IsNullOrEmpty(tag))
+            return;
+
+        // Track the active button for reliable stop-on-release
+        // (on-screen buttons send commands directly without ramping)
+        _activePtzButtonTag = tag;
+
         switch (tag)
         {
             case "MoveUpLeft": vm.MoveUpLeft(); break;
@@ -106,24 +116,14 @@ public partial class CameraControlView : UserControl
         if (DataContext is not CameraControlViewModel vm)
             return;
 
-        // Walk up from the event source to find the tagged Button
-        string? tag = null;
-        if (e.Source is IControl source)
-        {
-            var current = source;
-            while (current != null && current != this)
-            {
-                if (current is Control c && c.Tag is string t && !string.IsNullOrEmpty(t))
-                {
-                    tag = t;
-                    break;
-                }
-                current = current.Parent as IControl;
-            }
-        }
-
+        // Use the tracked active button tag for reliable stop-on-release.
+        // This avoids issues with the visual tree walk failing when pointer
+        // is captured by the Button control.
+        var tag = _activePtzButtonTag;
         if (tag == null)
             return;
+
+        _activePtzButtonTag = null;
 
         switch (tag)
         {

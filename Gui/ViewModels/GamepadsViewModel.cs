@@ -71,8 +71,22 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
 
                 InputViewModels = _selectedGamepad?.Inputs.Select(i => new InputViewModel(i));
                 NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(ZoomProportionalMode));
+                NotifyPropertyChanged(nameof(ZoomProportionalFactor));
             }
         }
+    }
+
+    public bool ZoomProportionalMode
+    {
+        get => _selectedGamepad?.ZoomProportionalMode ?? false;
+        set { if (_selectedGamepad != null) { _selectedGamepad.ZoomProportionalMode = value; NotifyPropertyChanged(); } }
+    }
+
+    public float ZoomProportionalFactor
+    {
+        get => _selectedGamepad?.ZoomProportionalFactor ?? 0.5f;
+        set { if (_selectedGamepad != null) { _selectedGamepad.ZoomProportionalFactor = value; NotifyPropertyChanged(); } }
     }
 
     private void OnSelecetdGamepadPropertyChanged(object? sender, PropertyChangedEventArgs e)
