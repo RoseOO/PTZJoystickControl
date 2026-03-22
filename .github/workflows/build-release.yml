@@ -60,9 +60,10 @@ jobs:
     #  run: dotnet test
 
     - name: Publish application
-      run: dotnet publish Gui/Gui.csproj -c PublishRelease -r $env:Runtime --self-contained
+      run: dotnet publish Gui/Gui.csproj -c PublishRelease -r $env:Runtime --self-contained -p:Version=$env:AppVersion
       env:
         Runtime: ${{ format('win7-{0}', matrix.arch) }}
+        AppVersion: ${{ needs.bump-version.outputs.VERSION }}
 
     ## Decode the base 64 encoded pfx and save the Signing_Certificate
     #- name: Decode the pfx
@@ -111,7 +112,7 @@ jobs:
         dotnet-version: 6.0.x
 
     - name: Build
-      run: dotnet publish Gui/Gui.csproj -c PublishRelease -r osx-x64 --self-contained #/p:PublishSingleFile=true /p:PublishTrimmed=true
+      run: dotnet publish Gui/Gui.csproj -c PublishRelease -r osx-x64 --self-contained -p:Version=${{ needs.bump-version.outputs.VERSION }} #/p:PublishSingleFile=true /p:PublishTrimmed=true
 
     - name: Install Dependencies
       run: |
