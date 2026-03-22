@@ -125,7 +125,8 @@ internal class Program
 
         services.RegisterLazySingleton(() => new GamepadsViewModel(
             resolver.GetServiceOrThrow<IGamepadsService>(),
-            resolver.GetServiceOrThrow<IMappingProfileStore>()));
+            resolver.GetServiceOrThrow<IMappingProfileStore>(),
+            resolver.GetServiceOrThrow<ICamerasService>()));
         services.Register(() => new CamerasViewModel(
             resolver.GetServiceOrThrow<ICamerasService>(),
             resolver.GetServiceOrThrow<GamepadsViewModel>(),

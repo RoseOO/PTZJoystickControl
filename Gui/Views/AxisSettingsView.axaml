@@ -46,7 +46,12 @@
 			<NumericUpDown Width="140" Value="{Binding Saturation}" Minimum="0" Maximum=".25" Increment="0.01" FormatString="P2"></NumericUpDown>
 			<Label Margin="20,0,0,0">Dead zone</Label>
 			<NumericUpDown Width="140" Value="{Binding DeadZone}" Minimum="0" Maximum=".25" Increment="0.01" FormatString="P2"></NumericUpDown>
-			<Label Margin="20,0,0,0" Content="{Binding OutputValue}"/>
+			<CheckBox Margin="20,0,0,0" IsChecked="{Binding EnableRamping}" VerticalAlignment="Center" ToolTip.Tip="Enable speed ramping (smooth acceleration/deceleration)">
+				<TextBlock Text="Ramp" VerticalAlignment="Center"/>
+			</CheckBox>
+			<NumericUpDown Width="100" Value="{Binding RampTime}" Minimum="0.05" Maximum="2.0" Increment="0.05" FormatString="F2"
+						   IsEnabled="{Binding EnableRamping}" ToolTip.Tip="Ramp time in seconds"/>
+			<Label Margin="0,0,0,0" Content="{Binding OutputValue}"/>
 			<Label Margin="20,0,0,0" Content="{Binding InputValue}"/>
 		</StackPanel>
 

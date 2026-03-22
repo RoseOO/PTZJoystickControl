@@ -38,6 +38,8 @@ public class InputViewModel : ViewModelBase, INotifyPropertyChanged
 
     public bool Inverted { get => _input.Inverted; set => _input.Inverted = value; }
     public bool DefaultCenter { get => _input.DefaultCenter; set => _input.DefaultCenter = value; }
+    public bool EnableRamping { get => _input.EnableRamping; set { _input.EnableRamping = value; NotifyPropertyChanged(); } }
+    public float RampTime { get => _input.RampTime; set { _input.RampTime = value; NotifyPropertyChanged(); } }
     public bool IsAxis { get => InputType == InputType.Axis; }
 
 
