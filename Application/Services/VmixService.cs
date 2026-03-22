@@ -165,7 +165,7 @@ public class VmixService : IVmixService, IDisposable
     private void StartPolling()
     {
         _pollTimer?.Dispose();
-        _pollTimer = new Timer(PollPreviewInput, null, 0, 1000);
+        _pollTimer = new Timer(PollPreviewInput, null, 500, 1000);
     }
 
     private void StopPolling()

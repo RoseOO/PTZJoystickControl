@@ -58,6 +58,9 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     {
         Dispatcher.UIThread.Post(() =>
         {
+            if (_vmixService == null || !_vmixService.AutoCameraSelect)
+                return;
+
             var camera = Cameras.FirstOrDefault(c => c.VmixInputNumber == vmixInputNumber);
             if (camera != null && camera != SelectedCamera)
             {
