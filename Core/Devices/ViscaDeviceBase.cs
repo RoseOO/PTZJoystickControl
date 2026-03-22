@@ -43,6 +43,8 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
     protected byte blueGainCmd;
     protected byte apertureCmd;
 
+    private int vmixInputNumber = 0;
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -90,6 +92,20 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
         set => address = 0 < value && value < 128 
             ? value
             : throw new ArgumentOutOfRangeException($"ViscaAddress must be between 1 and 127. {value} was given.");
+    }
+
+    public int VmixInputNumber
+    {
+        get => vmixInputNumber;
+        set
+        {
+            if (vmixInputNumber != value)
+            {
+                vmixInputNumber = value;
+                NotifyPropertyChanged();
+                NotifyPersistentPropertyChanged();
+            }
+        }
     }
 
     protected DateTime LastSendTime

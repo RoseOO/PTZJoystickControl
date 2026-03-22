@@ -14,6 +14,7 @@ public class ViscaDeviceSettings
     public bool SingleCommand { get; set; }
     public string? SerialPortName { get; set; }
     public int SerialBaudRate { get; set; } = 9600;
+    public int VmixInputNumber { get; set; }
 
     public ViscaDeviceSettings() { }
 
@@ -21,6 +22,7 @@ public class ViscaDeviceSettings
     {
         IViscaDeveiceTypeAssemblyQualifiedName = viscaDevice.GetType().AssemblyQualifiedName!;
         Name = viscaDevice.Name;
+        VmixInputNumber = viscaDevice.VmixInputNumber;
         if(viscaDevice is ViscaIPDeviceBase viscaIPDevice)
         {
             IpAddress = viscaIPDevice.IPAddress;

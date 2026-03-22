@@ -75,7 +75,7 @@ internal class Program
         services.Register<IGitHubClient>(() => new GitHubClient(new ProductHeaderValue("PTZJoystickControl-UpdateChecker")));
         services.Register<IUpdateService>(() => new UpdateService(
             resolver.GetServiceOrThrow<IGitHubClient>(),
-            "AronHetLam",
+            "RoseOO",
             "PTZJoystickControl",
             Assembly.GetExecutingAssembly().GetName().Version!));
 
@@ -98,7 +98,8 @@ internal class Program
             resolver.GetServiceOrThrow<IMappingProfileStore>()));
         services.Register(() => new CamerasViewModel(
             resolver.GetServiceOrThrow<ICamerasService>(),
-            resolver.GetServiceOrThrow<GamepadsViewModel>()));
+            resolver.GetServiceOrThrow<GamepadsViewModel>(),
+            resolver.GetServiceOrThrow<IVmixService>()));
         services.RegisterLazySingleton(() => new CameraControlViewModel());
         services.RegisterLazySingleton(() => new VmixViewModel(
             resolver.GetServiceOrThrow<IVmixService>()));

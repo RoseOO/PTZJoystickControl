@@ -14,11 +14,13 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
 {
     private readonly ICamerasService _camerasService;
     private readonly GamepadsViewModel _gamepadsViewModel;
+    private readonly IVmixService? _vmixService;
 
-    public CamerasViewModel(ICamerasService camerasService, GamepadsViewModel gamepadsViewModel)
+    public CamerasViewModel(ICamerasService camerasService, GamepadsViewModel gamepadsViewModel, IVmixService? vmixService = null)
     {
         _camerasService = camerasService;
         _gamepadsViewModel = gamepadsViewModel;
+        _vmixService = vmixService;
         Cameras = _camerasService.Cameras;
 
         WeakEventHandlerManager.Subscribe<INotifyCollectionChanged, NotifyCollectionChangedEventArgs, CamerasViewModel>(camerasService.Cameras, nameof(camerasService.Cameras.CollectionChanged), OnCamerasServicePropertyCahnged);
@@ -28,7 +30,15 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     private void OnGamepadsViewModelPropertyCahnged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IGamepad.SelectedCamera) || e.PropertyName == nameof(GamepadsViewModel.SelectedGamepad))
+        {
             NotifyPropertyChanged(nameof(IGamepad.SelectedCamera));
+
+            // Auto-preview selected camera in VMix if enabled
+            if (_vmixService != null && _vmixService.AutoPreview && SelectedCamera != null && SelectedCamera.VmixInputNumber > 0)
+            {
+                _ = _vmixService.SendPreviewInputAsync(SelectedCamera.VmixInputNumber);
+            }
+        }
     }
 
     private void OnCamerasServicePropertyCahnged(object? sender, NotifyCollectionChangedEventArgs e)

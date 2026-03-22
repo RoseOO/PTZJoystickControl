@@ -39,6 +39,10 @@ namespace PtzJoystickControl.Application.Db
                         var viscaDevice = (ViscaDeviceBase?)Activator.CreateInstance(
                             Type.GetType(viscaDeviceSettings.IViscaDeveiceTypeAssemblyQualifiedName)!,
                             viscaDeviceSettings.Name);
+                        if (viscaDevice != null)
+                        {
+                            viscaDevice.VmixInputNumber = viscaDeviceSettings.VmixInputNumber;
+                        }
                         if (viscaDevice is ViscaIPDeviceBase viscaIPDevice)
                         {
                             viscaIPDevice.IPAddress = viscaDeviceSettings.IpAddress;

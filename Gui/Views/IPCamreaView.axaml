@@ -11,7 +11,7 @@
 		<v:CameraViewToCameraConverter x:Key="CameraViewToCameraConverter"/>
 	</UserControl.Resources>
 	
-	<Grid RowDefinitions="Auto,Auto" ColumnDefinitions="100,3,100,3,65,3,70,3,50,0,50,3,95,3,Auto">
+	<Grid RowDefinitions="Auto,Auto" ColumnDefinitions="100,3,100,3,65,3,70,3,50,0,50,3,85,3,80,3,Auto">
 		<Grid.Styles>
 			<Style Selector="Label">
 				<Setter Property="FontSize" Value="11"/>
@@ -33,8 +33,10 @@
 		<CheckBox	Grid.Column="8"  Grid.Row="1" IsChecked="{Binding UseHeader}" HorizontalAlignment="Center"/>
 		<Label		Grid.Column="10" Grid.Row="0">Interval</Label>
 		<TextBox	Grid.Column="10" Grid.Row="1" Text="{Binding SendWaitTime}" MinWidth ="0"/>
-		<Label		Grid.Column="12" Grid.Row="0">Status</Label>
-		<ContentControl Grid.Column="12" Grid.Row="1" Content="{Binding Connected}">
+		<Label		Grid.Column="12" Grid.Row="0">vMix Input</Label>
+		<TextBox	Grid.Column="12" Grid.Row="1" Text="{Binding VmixInputNumber}" Watermark="0" ToolTip.Tip="vMix input number for auto-preview"/>
+		<Label		Grid.Column="14" Grid.Row="0">Status</Label>
+		<ContentControl Grid.Column="14" Grid.Row="1" Content="{Binding Connected}">
 			<ContentControl.Styles>
 				<Style Selector="TextBlock">
 					<Setter Property="VerticalAlignment" Value="Center"/>
@@ -52,7 +54,7 @@
 				</v:CameraStatusTemplateSelector>
 			</ContentControl.DataTemplates>
 		</ContentControl>
-		<Button Grid.Column="14" Grid.Row="0" Grid.RowSpan="2" Background="#3000" Command="{Binding $parent[3].DataContext.RemoveCamera}" CommandParameter="{Binding Converter={StaticResource CameraViewToCameraConverter}}" ToolTip.Tip="Remove Camera">
+		<Button Grid.Column="16" Grid.Row="0" Grid.RowSpan="2" Background="#3000" Command="{Binding $parent[3].DataContext.RemoveCamera}" CommandParameter="{Binding Converter={StaticResource CameraViewToCameraConverter}}" ToolTip.Tip="Remove Camera">
 			<Button.Styles>
 				<Style Selector="Button:pointerover">
 					<Setter Property="Foreground" Value="red"/>
