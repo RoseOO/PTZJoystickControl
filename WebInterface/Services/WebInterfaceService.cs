@@ -71,6 +71,11 @@ public class WebInterfaceService : IDisposable
 
     public void Stop()
     {
+        try
+        {
+            _app?.StopAsync().GetAwaiter().GetResult();
+        }
+        catch { }
         _cts?.Cancel();
         IsRunning = false;
     }
@@ -261,7 +266,8 @@ public class WebInterfaceService : IDisposable
     {
         using var reader = new StreamReader(ctx.Request.Body, Encoding.UTF8);
         var json = await reader.ReadToEndAsync();
-        return JsonDocument.Parse(json).RootElement;
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.Clone();
     }
 
     private static string? GetEmbeddedResource(string resourceName)

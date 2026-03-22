@@ -29,6 +29,8 @@ public class MidiGamepad : IGamepad
     private const int NumCcInputs = 16;
     // MIDI note numbers exposed as button inputs
     private const int NumNoteInputs = 32;
+    // MIDI CC 0-127 midpoint for centering (127 / 2)
+    private const float MidiCcMidpoint = 63.5f;
 
     public bool IsActivated
     {
@@ -141,7 +143,7 @@ public class MidiGamepad : IGamepad
         if (_inputs.TryGetValue(name, out var input))
         {
             // Map MIDI CC 0-127 to -1..1
-            float normalized = (value / 63.5f) - 1f;
+            float normalized = (value / MidiCcMidpoint) - 1f;
             input.InputValue = Math.Clamp(normalized, -1f, 1f);
         }
     }

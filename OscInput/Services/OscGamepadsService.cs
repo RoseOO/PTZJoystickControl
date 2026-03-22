@@ -110,7 +110,6 @@ public class OscGamepadsService : IGamepadsService
 
     private async Task ReceiveLoop(OscGamepad gamepad, CancellationToken ct)
     {
-        var buffer = new byte[4096];
         while (!ct.IsCancellationRequested)
         {
             try
