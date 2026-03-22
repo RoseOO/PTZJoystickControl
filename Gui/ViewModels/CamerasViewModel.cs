@@ -15,6 +15,7 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     private readonly ICamerasService _camerasService;
     private readonly GamepadsViewModel _gamepadsViewModel;
     private readonly IVmixService? _vmixService;
+    private ViscaDeviceBase? _manuallySelectedCamera;
 
     public CamerasViewModel(ICamerasService camerasService, GamepadsViewModel gamepadsViewModel, IVmixService? vmixService = null)
     {
@@ -31,7 +32,8 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     {
         if (e.PropertyName == nameof(IGamepad.SelectedCamera) || e.PropertyName == nameof(GamepadsViewModel.SelectedGamepad))
         {
-            NotifyPropertyChanged(nameof(IGamepad.SelectedCamera));
+            // When gamepad selection changes, notify that SelectedCamera might have changed
+            NotifyPropertyChanged(nameof(SelectedCamera));
 
             // Auto-preview selected camera in VMix if enabled
             if (_vmixService != null && _vmixService.AutoPreview && SelectedCamera != null && SelectedCamera.VmixInputNumber > 0)
@@ -50,11 +52,27 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
 
     public ViscaDeviceBase? SelectedCamera
     {
-        get => _gamepadsViewModel.SelectedGamepad?.SelectedCamera;
+        get => _gamepadsViewModel.SelectedGamepad?.SelectedCamera ?? _manuallySelectedCamera;
         set
         {
             if (_gamepadsViewModel.SelectedGamepad != null)
+            {
                 _gamepadsViewModel.SelectedGamepad.SelectedCamera = value;
+            }
+            else
+            {
+                if (_manuallySelectedCamera != value)
+                {
+                    _manuallySelectedCamera = value;
+                    NotifyPropertyChanged();
+
+                    // Auto-preview selected camera in VMix if enabled
+                    if (_vmixService != null && _vmixService.AutoPreview && value != null && value.VmixInputNumber > 0)
+                    {
+                        _ = _vmixService.SendPreviewInputAsync(value.VmixInputNumber);
+                    }
+                }
+            }
         }
     }
 

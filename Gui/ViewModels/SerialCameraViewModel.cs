@@ -47,6 +47,12 @@ public class SerialCameraViewModel : ViewModelBase, INotifyPropertyChanged
 
     public bool Connected { get => _camera.Connected; }
 
+    public int VmixInputNumber
+    {
+        get => _camera.VmixInputNumber;
+        set => _camera.VmixInputNumber = value;
+    }
+
     public IEnumerable<string> AvailablePorts => ViscaSerialDevice.GetAvailablePorts();
 
     public void RefreshPorts()

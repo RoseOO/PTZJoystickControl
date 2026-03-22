@@ -40,7 +40,7 @@
 
 			<TextBlock IsVisible="{Binding NotAvailableOrError}" Text="No Update Available"/>
  
-			<TextBlock IsVisible="{Binding !!LatestVersion }" Text="{Binding LatestVersion, StringFormat=Latest Version: {0}}"/>
+			<TextBlock IsVisible="{Binding HasLatestVersion}" Text="{Binding LatestVersion, StringFormat=Latest Version: {0}}"/>
 		</StackPanel>
 
 		<StackPanel Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5" Spacing="5">

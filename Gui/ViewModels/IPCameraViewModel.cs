@@ -106,6 +106,12 @@ public class IPCameraViewModel : ViewModelBase, INotifyPropertyChanged
 
     public bool Connected { get => _camera.Connected; }
 
+    public int VmixInputNumber
+    {
+        get => _camera.VmixInputNumber;
+        set => _camera.VmixInputNumber = value;
+    }
+
     public new event PropertyChangedEventHandler? PropertyChanged;
     private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
     {

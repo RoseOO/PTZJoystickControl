@@ -34,7 +34,7 @@
 		<Label		Grid.Column="10" Grid.Row="0">Interval</Label>
 		<TextBox	Grid.Column="10" Grid.Row="1" Text="{Binding SendWaitTime}" MinWidth ="0"/>
 		<Label		Grid.Column="12" Grid.Row="0">vMix Input</Label>
-		<TextBox	Grid.Column="12" Grid.Row="1" Text="{Binding VmixInputNumber}" Watermark="0" ToolTip.Tip="vMix input number for auto-preview"/>
+		<TextBox	Grid.Column="12" Grid.Row="1" Text="{Binding VmixInputNumber, FallbackValue=0}" Watermark="0" ToolTip.Tip="vMix input number for auto-preview"/>
 		<Label		Grid.Column="14" Grid.Row="0">Status</Label>
 		<ContentControl Grid.Column="14" Grid.Row="1" Content="{Binding Connected}">
 			<ContentControl.Styles>

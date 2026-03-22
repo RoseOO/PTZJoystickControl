@@ -27,12 +27,12 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         {
             if (protocol == Protocol.Udp)
             {
-                Debug.WriteLine($"[{name}] IP Connect: Opening UDP socket for {ViscaIpEndpont}");
+                Trace.WriteLine($"[{name}] IP Connect: Opening UDP socket for {ViscaIpEndpont}");
                 socket = UdpSocket.GetInstance();
                 UdpSocket.AddListenerCallback(ViscaIpEndpont, ParseViscaIPReply);
                 return;
             }
-            Debug.WriteLine($"[{name}] IP Connect: Creating TCP socket for {ViscaIpEndpont}");
+            Trace.WriteLine($"[{name}] IP Connect: Creating TCP socket for {ViscaIpEndpont}");
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
                 SendTimeout = 500,
@@ -46,7 +46,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         {
             try
             {
-                Debug.WriteLine($"[{name}] IP Connect: TCP connecting to {ViscaIpEndpont}...");
+                Trace.WriteLine($"[{name}] IP Connect: TCP connecting to {ViscaIpEndpont}...");
                 SocketAsyncEventArgs socketAsyncEvArgs = new SocketAsyncEventArgs() { RemoteEndPoint = ViscaIpEndpont };
                 socketAsyncEvArgs.Completed += OnConnected;
 
@@ -55,7 +55,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[{name}] IP Connect Error: TCP BeginSocket {ViscaIpEndpont}: {e.Message}");
+                Trace.WriteLine($"[{name}] IP Connect Error: TCP BeginSocket {ViscaIpEndpont}: {e.Message}");
                 EndSocket();
             }
         }
@@ -68,17 +68,17 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         {
             if (eventArgs.SocketError == SocketError.Success)
             {
-                Debug.WriteLine($"[{name}] IP Connect: TCP connected to {ViscaIpEndpont}");
+                Trace.WriteLine($"[{name}] IP Connect: TCP connected to {ViscaIpEndpont}");
                 socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnRecieve), null);
             }
             else
             {
-                Debug.WriteLine($"[{name}] IP Connect: TCP connection failed to {ViscaIpEndpont}: {eventArgs.SocketError}");
+                Trace.WriteLine($"[{name}] IP Connect: TCP connection failed to {ViscaIpEndpont}: {eventArgs.SocketError}");
             }
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"[{name}] IP Connect Error: TCP OnConnected {ViscaIpEndpont}: {eventArgs?.SocketError} {e.Message}");
+            Trace.WriteLine($"[{name}] IP Connect Error: TCP OnConnected {ViscaIpEndpont}: {eventArgs?.SocketError} {e.Message}");
             EndSocket();
         }
     }
@@ -92,13 +92,13 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         try
         {
             length = socket?.EndReceive(res, out var error) ?? 0;
-            Debug.WriteLine($"[{name}] IP Recv [TCP] <- {ViscaIpEndpont}: {BitConverter.ToString(receiveBuffer, 0, length)}");
+            Trace.WriteLine($"[{name}] IP Recv [TCP] <- {ViscaIpEndpont}: {BitConverter.ToString(receiveBuffer, 0, length)}");
             ParseViscaIPReply(receiveBuffer, length);
             socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnRecieve), null);
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"[{name}] IP Recv Error [TCP] <- {ViscaIpEndpont}: {e.Message}");
+            Trace.WriteLine($"[{name}] IP Recv Error [TCP] <- {ViscaIpEndpont}: {e.Message}");
             NotifyPropertyChanged(nameof(Connected));
             EndSocket();
         }
@@ -106,7 +106,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
 
     public override void EndSocket()
     {
-        Debug.WriteLine($"[{name}] IP Disconnect: Closing socket for {ViscaIpEndpont}");
+        Trace.WriteLine($"[{name}] IP Disconnect: Closing socket for {ViscaIpEndpont}");
         if (socket != null)
         {
             EventHandler<SocketAsyncEventArgs> onComplete = (sender, e) =>
@@ -679,7 +679,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
     {
         if (socket == null)
         {
-            Debug.WriteLine($"[{name}] IP Send: No socket for {ViscaIpEndpont} - initiating connection");
+            Trace.WriteLine($"[{name}] IP Send: No socket for {ViscaIpEndpont} - initiating connection");
             BeginSocket();
             return;
         }
@@ -687,19 +687,19 @@ public class ViscaIpDevice : ViscaIPDeviceBase
 
         if (protocol == Protocol.Tcp && !socket.Connected)
         {
-            Debug.WriteLine($"[{name}] IP Send: TCP not connected to {ViscaIpEndpont} - reconnecting");
+            Trace.WriteLine($"[{name}] IP Send: TCP not connected to {ViscaIpEndpont} - reconnecting");
             BeginSocket();
             return;
         }
 
         try
         {
-            Debug.WriteLine($"[{name}] IP Send [{protocol}] -> {ViscaIpEndpont}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
+            Trace.WriteLine($"[{name}] IP Send [{protocol}] -> {ViscaIpEndpont}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
             socket.SendTo(sendBuffer, sendBuffIndex, SocketFlags.None, ViscaIpEndpont);
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"[{name}] IP Send Error [{protocol}] -> {ViscaIpEndpont}: {e.Message}");
+            Trace.WriteLine($"[{name}] IP Send Error [{protocol}] -> {ViscaIpEndpont}: {e.Message}");
             EndSocket();
         }
     }

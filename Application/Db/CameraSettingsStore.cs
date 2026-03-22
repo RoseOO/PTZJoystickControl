@@ -50,11 +50,13 @@ namespace PtzJoystickControl.Application.Db
                             viscaIPDevice.Protocol = viscaDeviceSettings.Protocol;
                             viscaIPDevice.SendWaitTime = viscaDeviceSettings.SendWaitTime;
                             viscaIPDevice.UseHeader = viscaDeviceSettings.UseHeader;
+                            viscaIPDevice.BeginSocket();
                         }
                         else if (viscaDevice is ViscaSerialDeviceBase serialDevice)
                         {
                             serialDevice.PortName = viscaDeviceSettings.SerialPortName ?? "";
                             serialDevice.BaudRate = viscaDeviceSettings.SerialBaudRate;
+                            serialDevice.BeginPort();
                         }
                         return viscaDevice;
                     })

@@ -28,7 +28,7 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
 
         try
         {
-            Debug.WriteLine($"[{name}] Serial Connect: Opening {portName} at {baudRate} baud");
+            Trace.WriteLine($"[{name}] Serial Connect: Opening {portName} at {baudRate} baud");
             _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
             {
                 ReadTimeout = 500,
@@ -36,12 +36,12 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
             };
             _serialPort.DataReceived += OnDataReceived;
             _serialPort.Open();
-            Debug.WriteLine($"[{name}] Serial Connect: {portName} opened successfully");
+            Trace.WriteLine($"[{name}] Serial Connect: {portName} opened successfully");
             NotifyPropertyChanged(nameof(Connected));
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"[{name}] Serial Connect Error: {portName} - {e.Message}");
+            Trace.WriteLine($"[{name}] Serial Connect Error: {portName} - {e.Message}");
             _serialPort?.Dispose();
             _serialPort = null;
         }
@@ -53,13 +53,13 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
         {
             try
             {
-                Debug.WriteLine($"[{name}] Serial Disconnect: Closing {portName}");
+                Trace.WriteLine($"[{name}] Serial Disconnect: Closing {portName}");
                 _serialPort.DataReceived -= OnDataReceived;
                 if (_serialPort.IsOpen) _serialPort.Close();
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[{name}] Serial Disconnect Error: {portName} - {e.Message}");
+                Trace.WriteLine($"[{name}] Serial Disconnect Error: {portName} - {e.Message}");
             }
             _serialPort.Dispose();
             _serialPort = null;
@@ -76,11 +76,11 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
             byte[] buffer = new byte[bytesToRead];
             _serialPort.Read(buffer, 0, bytesToRead);
             LastReceiveTime = DateTime.UtcNow;
-            Debug.WriteLine($"[{name}] Serial Recv <- {portName}: {BitConverter.ToString(buffer)}");
+            Trace.WriteLine($"[{name}] Serial Recv <- {portName}: {BitConverter.ToString(buffer)}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[{name}] Serial Recv Error <- {portName}: {ex.Message}");
+            Trace.WriteLine($"[{name}] Serial Recv Error <- {portName}: {ex.Message}");
         }
     }
 
@@ -88,7 +88,7 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
     {
         if (_serialPort == null || !_serialPort.IsOpen)
         {
-            Debug.WriteLine($"[{name}] Serial Send: Port not open - initiating connection");
+            Trace.WriteLine($"[{name}] Serial Send: Port not open - initiating connection");
             BeginPort();
             return;
         }
@@ -97,13 +97,13 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
         {
             try
             {
-                Debug.WriteLine($"[{name}] Serial Send -> {portName}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
+                Trace.WriteLine($"[{name}] Serial Send -> {portName}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
                 _serialPort.Write(sendBuffer, 0, sendBuffIndex);
                 lastSendTime = DateTime.UtcNow;
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[{name}] Serial Send Error -> {portName}: {e.Message}");
+                Trace.WriteLine($"[{name}] Serial Send Error -> {portName}: {e.Message}");
                 EndPort();
             }
         }

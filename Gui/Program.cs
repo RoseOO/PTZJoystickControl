@@ -29,12 +29,20 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".PTZJoystickControl/"));
-        else
-            Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/"));
-        //f = File.OpenWrite(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/log.txt"));
-        //Trace.Listeners.Add(new TextWriterTraceListener(f));
+        string logDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".PTZJoystickControl/")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/");
+
+        Directory.CreateDirectory(logDirectory);
+
+        // Enable logging to file for both Debug and Release builds
+        string logFilePath = Path.Combine(logDirectory, "log.txt");
+        var fileListener = new TextWriterTraceListener(logFilePath)
+        {
+            TraceOutputOptions = TraceOptions.DateTime | TraceOptions.ProcessId
+        };
+        Trace.Listeners.Add(fileListener);
+        Trace.AutoFlush = true;
         Debug.AutoFlush = true;
 
         var appBuilder = BuildAvaloniaApp();

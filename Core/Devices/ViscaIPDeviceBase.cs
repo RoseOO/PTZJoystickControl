@@ -103,7 +103,7 @@ public abstract class ViscaIPDeviceBase : ViscaDeviceBase
         NotifyPersistentPropertyChanged(propertyName);
     }
 
-    public override bool Connected { get { return socket != null && (socket.Connected || base.Connected); } }
+    public override bool Connected { get { return socket != null && (protocol == Protocol.Udp || socket.Connected || base.Connected); } }
 
     public abstract void BeginSocket();
 

@@ -23,12 +23,19 @@ public class CameraControlViewModel : ViewModelBase, INotifyPropertyChanged
             if (_camera != value)
             {
                 if (_camera != null)
+                {
                     _camera.PropertyChanged -= OnCameraPropertyChanged;
+                    _camera.PollingEnabled = false;
+                }
                 _camera = value;
                 if (_camera != null)
+                {
                     _camera.PropertyChanged += OnCameraPropertyChanged;
+                    _camera.PollingEnabled = true;
+                }
                 NotifyPropertyChanged();
                 NotifyPropertyChanged(nameof(HasCamera));
+                NotifyPropertyChanged(nameof(PollingEnabled));
                 NotifyFeedbackProperties();
             }
         }

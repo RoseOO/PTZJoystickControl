@@ -42,9 +42,9 @@ namespace PtzJoystickControl.Application.Services
                 Uri = new Uri(latestRelease.HtmlUrl)
             };
 
-            var versionMatch = Regex.Match(latestRelease.TagName, @"\d+\.\d+\.\d+(\.\d+)?");
+            var versionMatch = Regex.Match(latestRelease.TagName, @"v?(\d+(?:\.\d+)?(?:\.\d+)?(?:\.\d+)?)");
 
-            if (!versionMatch.Success || !Version.TryParse(versionMatch.Value, out Version? latest))
+            if (!versionMatch.Success || !Version.TryParse(PadVersion(versionMatch.Groups[1].Value), out Version? latest))
             {
                 update.Error = true;
                 update.ErrorMessage = "Error parsing version tag";
@@ -55,6 +55,17 @@ namespace PtzJoystickControl.Application.Services
             }
 
             return update;
+        }
+
+        private static string PadVersion(string version)
+        {
+            var parts = version.Split('.');
+            while (parts.Length < 3)
+            {
+                version += ".0";
+                parts = version.Split('.');
+            }
+            return version;
         }
     }
 }
