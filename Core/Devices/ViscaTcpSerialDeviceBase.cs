@@ -13,6 +13,13 @@ public abstract class ViscaTcpSerialDeviceBase : ViscaIPDeviceBase
         singleCommand = true;
     }
 
+    public ViscaTcpSerialDeviceBase(string name, Protocol protocol) : base(name)
+    {
+        this.protocol = protocol;
+        useHeader = false;
+        singleCommand = true;
+    }
+
     public bool SendAddressSet
     {
         get => sendAddressSet;
