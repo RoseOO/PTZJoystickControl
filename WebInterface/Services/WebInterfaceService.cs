@@ -243,80 +243,66 @@ public class WebInterfaceService : IDisposable
 
         // POST /api/cameras/{index}/iris
         app.MapPost("/api/cameras/{index:int}/iris", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<IrisDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustIris(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<IrisDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustIris(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/shutter
         app.MapPost("/api/cameras/{index:int}/shutter", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<ShutterDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustShutter(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<ShutterDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustShutter(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/gain
         app.MapPost("/api/cameras/{index:int}/gain", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustGain(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustGain(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/aperture
         app.MapPost("/api/cameras/{index:int}/aperture", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<ApertureDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustAperture(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<ApertureDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustAperture(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/backlight
         app.MapPost("/api/cameras/{index:int}/backlight", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var mode = Enum.Parse<BacklightCompensation>(body.GetProperty("mode").GetString()!);
-            camera.SetBacklightCompensation(mode);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var mode = Enum.Parse<BacklightCompensation>(body.GetProperty("mode").GetString()!);
+                camera.SetBacklightCompensation(mode);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/redgain
         app.MapPost("/api/cameras/{index:int}/redgain", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustRedGain(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustRedGain(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/bluegain
         app.MapPost("/api/cameras/{index:int}/bluegain", async (int index, HttpContext ctx) =>
-        {
-            var camera = GetCamera(index);
-            if (camera == null) return Results.NotFound("Camera not found");
-            var body = await ReadBody(ctx);
-            var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
-            camera.AdjustBlueGain(dir);
-            return Results.Ok();
-        });
+            await CameraOperation(index, ctx, (camera, body) =>
+            {
+                var dir = Enum.Parse<GainDir>(body.GetProperty("direction").GetString()!);
+                camera.AdjustBlueGain(dir);
+                return Results.Ok();
+            }));
 
         // POST /api/cameras/{index}/wbtrigger
         app.MapPost("/api/cameras/{index:int}/wbtrigger", (int index) =>
@@ -416,6 +402,25 @@ public class WebInterfaceService : IDisposable
         var json = await reader.ReadToEndAsync();
         using var doc = JsonDocument.Parse(json);
         return doc.RootElement.Clone();
+    }
+
+    /// <summary>
+    /// Wraps a camera API operation with standard error handling.
+    /// Returns 404 if camera not found, 400 if request body is invalid.
+    /// </summary>
+    private async Task<IResult> CameraOperation(int index, HttpContext ctx, Func<ViscaDeviceBase, JsonElement, IResult> action)
+    {
+        var camera = GetCamera(index);
+        if (camera == null) return Results.NotFound("Camera not found");
+        try
+        {
+            var body = await ReadBody(ctx);
+            return action(camera, body);
+        }
+        catch (Exception ex) when (ex is KeyNotFoundException or JsonException or ArgumentException or FormatException)
+        {
+            return Results.BadRequest($"Invalid request: {ex.Message}");
+        }
     }
 
     private static string? GetEmbeddedResource(string resourceName)
