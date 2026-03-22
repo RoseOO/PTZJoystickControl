@@ -6,5 +6,6 @@ public class VmixSettings
     public int Port { get; set; } = 8088;
     public bool Enabled { get; set; }
     public bool AutoPreview { get; set; } = true;
+    public bool AutoCameraSelect { get; set; }
     public Dictionary<int, int> CameraToVmixInput { get; set; } = new();
 }

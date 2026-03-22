@@ -6,6 +6,9 @@ public interface IVmixService
     string Host { get; set; }
     int Port { get; set; }
     bool AutoPreview { get; set; }
+    bool AutoCameraSelect { get; set; }
+
+    event Action<int>? PreviewInputChanged;
 
     Task ConnectAsync();
     void Disconnect();

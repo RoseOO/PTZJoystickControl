@@ -8,7 +8,7 @@
 	<Border Background="#2000" CornerRadius="6" Margin="10,4,10,10" Padding="8,4">
 		<StackPanel Spacing="4">
 			<TextBlock Text="vMix Integration" FontWeight="Bold" FontSize="12"/>
-			<Grid ColumnDefinitions="80,3,100,3,55,3,Auto,3,Auto,3,Auto" RowDefinitions="Auto,Auto">
+			<Grid ColumnDefinitions="80,3,100,3,55,3,70,3,Auto,3,Auto,3,Auto" RowDefinitions="Auto,Auto">
 				<Grid.Styles>
 					<Style Selector="Label">
 						<Setter Property="FontSize" Value="11"/>
@@ -24,16 +24,18 @@
 				<TextBox Grid.Column="2" Grid.Row="1" Text="{Binding Port}" MinWidth="0"/>
 				<Label Grid.Column="4" Grid.Row="0">Preview</Label>
 				<CheckBox Grid.Column="4" Grid.Row="1" IsChecked="{Binding AutoPreview}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				<Label Grid.Column="6" Grid.Row="0">Status</Label>
-				<TextBlock Grid.Column="6" Grid.Row="1" VerticalAlignment="Center" FontSize="11">
+				<Label Grid.Column="6" Grid.Row="0">Auto Select</Label>
+				<CheckBox Grid.Column="6" Grid.Row="1" IsChecked="{Binding AutoCameraSelect}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<Label Grid.Column="8" Grid.Row="0">Status</Label>
+				<TextBlock Grid.Column="8" Grid.Row="1" VerticalAlignment="Center" FontSize="11">
 					<TextBlock.Text>
 						<MultiBinding StringFormat="{}{0}">
 							<Binding Path="IsConnected"/>
 						</MultiBinding>
 					</TextBlock.Text>
 				</TextBlock>
-				<Button Grid.Column="8" Grid.Row="0" Grid.RowSpan="2" Content="Connect" Command="{Binding Connect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
-				<Button Grid.Column="10" Grid.Row="0" Grid.RowSpan="2" Content="Disconnect" Command="{Binding Disconnect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
+				<Button Grid.Column="10" Grid.Row="0" Grid.RowSpan="2" Content="Connect" Command="{Binding Connect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
+				<Button Grid.Column="12" Grid.Row="0" Grid.RowSpan="2" Content="Disconnect" Command="{Binding Disconnect}" VerticalAlignment="Center" FontSize="11" Padding="8,3"/>
 			</Grid>
 		</StackPanel>
 	</Border>

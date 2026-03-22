@@ -1,4 +1,5 @@
-﻿using Avalonia.Utilities;
+﻿using Avalonia.Threading;
+using Avalonia.Utilities;
 using PtzJoystickControl.Application.Devices;
 using PtzJoystickControl.Core.Devices;
 using PtzJoystickControl.Core.Services;
@@ -26,6 +27,11 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
 
         WeakEventHandlerManager.Subscribe<INotifyCollectionChanged, NotifyCollectionChangedEventArgs, CamerasViewModel>(camerasService.Cameras, nameof(camerasService.Cameras.CollectionChanged), OnCamerasServicePropertyCahnged);
         WeakEventHandlerManager.Subscribe<INotifyPropertyChanged, PropertyChangedEventArgs, CamerasViewModel>(gamepadsViewModel, nameof(gamepadsViewModel.PropertyChanged), OnGamepadsViewModelPropertyCahnged);
+
+        if (_vmixService != null)
+        {
+            _vmixService.PreviewInputChanged += OnVmixPreviewInputChanged;
+        }
     }
 
     private void OnGamepadsViewModelPropertyCahnged(object? sender, PropertyChangedEventArgs e)
@@ -46,6 +52,18 @@ public class CamerasViewModel : ViewModelBase, INotifyPropertyChanged
     private void OnCamerasServicePropertyCahnged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         NotifyPropertyChanged(nameof(Cameras));
+    }
+
+    private void OnVmixPreviewInputChanged(int vmixInputNumber)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var camera = Cameras.FirstOrDefault(c => c.VmixInputNumber == vmixInputNumber);
+            if (camera != null && camera != SelectedCamera)
+            {
+                SelectedCamera = camera;
+            }
+        });
     }
 
     public ObservableCollection<ViscaDeviceBase> Cameras { get; }

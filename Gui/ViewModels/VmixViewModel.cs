@@ -32,6 +32,12 @@ public class VmixViewModel : ViewModelBase, INotifyPropertyChanged
         set { _vmixService.AutoPreview = value; NotifyPropertyChanged(); }
     }
 
+    public bool AutoCameraSelect
+    {
+        get => _vmixService.AutoCameraSelect;
+        set { _vmixService.AutoCameraSelect = value; NotifyPropertyChanged(); }
+    }
+
     public bool IsConnected => _vmixService.IsConnected;
 
     public async void Connect()
