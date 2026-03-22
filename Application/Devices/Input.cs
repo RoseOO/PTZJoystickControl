@@ -27,6 +27,13 @@ public class Input : IInput
     private float saturation { get; set; } = 0.05F;
     private bool inverted { get; set; }
     private bool defaultCenter { get; set; } = true;
+    private bool enableRamping { get; set; } = false;
+    private float rampTime { get; set; } = 0.3F; // 300ms default ramp time
+
+    // Ramping state
+    private float targetValue = 0;
+    private float currentRampedValue = 0;
+    private DateTime lastUpdateTime = DateTime.UtcNow;
 
     private Input(string id, string name, InputType inputType, IEnumerable<ICommand> commands, bool isSecondInput)
     {
@@ -86,6 +93,32 @@ public class Input : IInput
         set
         {
             defaultCenter = value;
+            NotifyPersistentPropertyChanged();
+        }
+    }
+
+    public bool EnableRamping
+    {
+        get => enableRamping;
+        set
+        {
+            enableRamping = value;
+            if (!value)
+            {
+                // Reset ramping state when disabled
+                currentRampedValue = 0;
+                targetValue = 0;
+            }
+            NotifyPersistentPropertyChanged();
+        }
+    }
+
+    public float RampTime
+    {
+        get => rampTime;
+        set
+        {
+            rampTime = Math.Max(0.05F, Math.Min(value, 2.0F)); // Clamp between 50ms and 2s
             NotifyPersistentPropertyChanged();
         }
     }
@@ -238,18 +271,84 @@ public class Input : IInput
 
                 CurrentDirection = Direction.Stop;
 
-                if (mappedValue < 0)
+                // Special handling for non-centered inputs (like triggers)
+                if (!defaultCenter)
                 {
-                    mappedValue = Math.Abs(mappedValue) + dynCommand.MinValue;
-                    CurrentDirection = Direction.Low;
+                    // For triggers/non-centered axes, map 0-1 to min-max range
+                    // and use configured direction
+                    if (InputValue > 0)
+                    {
+                        mappedValue = Util.Map(InputValue, 0, 1, dynCommand.MinValue, maxValue);
+                        CurrentDirection = CommandDirection?.Direction ?? Direction.High;
+
+                        if (enableRamping)
+                        {
+                            mappedValue = ApplyRamping(mappedValue, dynCommand.MinValue, maxValue);
+                        }
+
+                        CurrentValue = (int)mappedValue;
+                        dynCommand.Execute((int)mappedValue, CurrentDirection);
+                    }
+                    else
+                    {
+                        // Trigger released - ramp down if enabled, otherwise stop immediately
+                        if (enableRamping)
+                        {
+                            mappedValue = ApplyRamping(0, dynCommand.MinValue, maxValue);
+                            if (mappedValue > dynCommand.MinValue)
+                            {
+                                CurrentDirection = CommandDirection?.Direction ?? Direction.High;
+                                CurrentValue = (int)mappedValue;
+                                dynCommand.Execute((int)mappedValue, CurrentDirection);
+                            }
+                            else
+                            {
+                                CurrentValue = 0;
+                                currentRampedValue = 0;
+                                dynCommand.Execute(0, Direction.Stop);
+                            }
+                        }
+                        else
+                        {
+                            CurrentValue = 0;
+                            dynCommand.Execute(0, Direction.Stop);
+                        }
+                    }
                 }
-                else if (mappedValue > 0)
+                else
                 {
-                    mappedValue += dynCommand.MinValue;
-                    CurrentDirection = Direction.High;
+                    // Standard centered axis behavior (joysticks) with optional ramping
+                    float finalValue = mappedValue;
+
+                    if (enableRamping)
+                    {
+                        // For centered axes, ramp the absolute value then reapply direction
+                        targetValue = Math.Abs(mappedValue);
+                        finalValue = ApplyRamping(targetValue, dynCommand.MinValue, range);
+                        if (mappedValue < 0) finalValue = -finalValue;
+                    }
+
+                    if (finalValue < 0)
+                    {
+                        finalValue = Math.Abs(finalValue) + dynCommand.MinValue;
+                        CurrentDirection = Direction.Low;
+                        CurrentValue = (int)finalValue;
+                        dynCommand.Execute((int)finalValue, CurrentDirection);
+                    }
+                    else if (finalValue > 0)
+                    {
+                        finalValue += dynCommand.MinValue;
+                        CurrentDirection = Direction.High;
+                        CurrentValue = (int)finalValue;
+                        dynCommand.Execute((int)finalValue, CurrentDirection);
+                    }
+                    else
+                    {
+                        CurrentValue = 0;
+                        currentRampedValue = 0;
+                        dynCommand.Execute(0, Direction.Stop);
+                    }
                 }
-                CurrentValue = (int)mappedValue;
-                dynCommand.Execute((int)mappedValue, CurrentDirection);
             }
             else if (InputType == InputType.Button)
             {
@@ -298,6 +397,31 @@ public class Input : IInput
 
             if (executeCommand) statCommand.Execute(commandValue!);
         }
+    }
+
+    private float ApplyRamping(float targetValue, float minValue, float maxValue)
+    {
+        DateTime now = DateTime.UtcNow;
+        float deltaTime = (float)(now - lastUpdateTime).TotalSeconds;
+        lastUpdateTime = now;
+
+        // Calculate how much we can change per second
+        float rampSpeed = (maxValue - minValue) / rampTime;
+        float maxChange = rampSpeed * deltaTime;
+
+        // Move current ramped value toward target
+        float delta = targetValue - currentRampedValue;
+
+        if (Math.Abs(delta) <= maxChange)
+        {
+            currentRampedValue = targetValue;
+        }
+        else
+        {
+            currentRampedValue += Math.Sign(delta) * maxChange;
+        }
+
+        return currentRampedValue;
     }
 
     public event PropertyChangedEventHandler? PersistentPropertyChanged;

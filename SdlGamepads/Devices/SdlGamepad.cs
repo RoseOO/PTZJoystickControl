@@ -37,6 +37,8 @@ public class SdlGamepad : IGamepad
     private readonly Dictionary<string, IInput> inputs = new();
     private ViscaDeviceBase? selectedCamera;
     private ObservableCollection<ViscaDeviceBase>? cameras;
+    private bool zoomProportionalMode = false;
+    private float zoomProportionalFactor = 0.5F; // Default 50% reduction at full zoom
 
     public bool IsActivated { 
         get => isActivated;
@@ -83,6 +85,28 @@ public class SdlGamepad : IGamepad
                 selectedCamera = value;
                 NotifyPropertyChanged();
             }
+        }
+    }
+
+    public bool ZoomProportionalMode
+    {
+        get => zoomProportionalMode;
+        set
+        {
+            zoomProportionalMode = value;
+            NotifyPersistentPropertyChanged();
+            NotifyPropertyChanged();
+        }
+    }
+
+    public float ZoomProportionalFactor
+    {
+        get => zoomProportionalFactor;
+        set
+        {
+            zoomProportionalFactor = Math.Max(0.1F, Math.Min(value, 0.9F)); // Clamp between 10% and 90%
+            NotifyPersistentPropertyChanged();
+            NotifyPropertyChanged();
         }
     }
 

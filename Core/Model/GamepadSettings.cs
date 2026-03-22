@@ -8,6 +8,8 @@ public class GamepadSettings
     public List<InputSettings>? Inputs { get; set; }
     public string Name { get; set; } = null!;
     public bool IsActivated { get; set; }
+    public bool ZoomProportionalMode { get; set; }
+    public float ZoomProportionalFactor { get; set; }
 
     public GamepadSettings()
     {
@@ -23,5 +25,7 @@ public class GamepadSettings
         }
         Name = gmaepad.Name;
         IsActivated = gmaepad.IsActivated;
+        ZoomProportionalMode = gmaepad.ZoomProportionalMode;
+        ZoomProportionalFactor = gmaepad.ZoomProportionalFactor;
     }
 }

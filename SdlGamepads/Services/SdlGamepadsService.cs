@@ -42,7 +42,10 @@ public class SdlGamepadsService : IGamepadsService
 
     public void ActivateGamepad(IGamepadInfo gamepadInfo)
     {
-        if (gamepadInfo is SdlGamepadInfo sdlGamepadInfo && !ActiveGamepads.Any(g => g.Id == gamepadInfo.Id))
+        if (!(gamepadInfo is SdlGamepadInfo sdlGamepadInfo))
+            return;
+
+        if (!ActiveGamepads.Any(g => g.Id == gamepadInfo.Id))
         {
             if (gamepadInfo.IsConnected)
             {
@@ -51,6 +54,22 @@ public class SdlGamepadsService : IGamepadsService
                 gamepad.Acquire();
                 gamepad.IsActivated = true;
                 ActiveGamepads.Add(gamepad);
+            }
+            sdlGamepadInfo.IsActivated = true;
+        }
+        else
+        {
+            // Gamepad already exists in ActiveGamepads (was disconnected but kept around)
+            var existingGamepad = (SdlGamepad?)ActiveGamepads.FirstOrDefault(g => g.Id == gamepadInfo.Id);
+            if (existingGamepad != null && gamepadInfo.IsConnected)
+            {
+                // Reconnect the existing gamepad instance
+                existingGamepad.DeviceIndex = sdlGamepadInfo.DeviceIndex;
+                existingGamepad.InstanceId = sdlGamepadInfo.InstanceId;
+                existingGamepad.sdlJoystickPointer = SDL.SDL_JoystickOpen(sdlGamepadInfo.DeviceIndex);
+                existingGamepad.Acquire();
+                existingGamepad.IsActivated = true;
+                existingGamepad.IsConnected = true;
             }
             sdlGamepadInfo.IsActivated = true;
         }
@@ -64,7 +83,11 @@ public class SdlGamepadsService : IGamepadsService
             if (gamepad != null)
             {
                 gamepad.IsActivated = false;
-                DisconnectGamepad(gamepad);
+                gamepad.Unacquire();
+                gamepad.PersistentPropertyChanged -= GamepadPersistentPropertyChanged;
+
+                // Remove from ActiveGamepads when user explicitly deactivates
+                ActiveGamepads.Remove(gamepad);
             }
 
             sdlGamepadInfo.IsActivated = false;
@@ -88,6 +111,10 @@ public class SdlGamepadsService : IGamepadsService
         if (gamepadSettings == null)
             return gamepad;
 
+        // Load gamepad-level settings
+        gamepad.ZoomProportionalMode = gamepadSettings.ZoomProportionalMode;
+        gamepad.ZoomProportionalFactor = gamepadSettings.ZoomProportionalFactor;
+
         var commandsDict = gamepad.Commands.ToDictionary(val => val.GetType().ToString());
         foreach (IInput input in gamepad.Inputs)
         {
@@ -102,6 +129,8 @@ public class SdlGamepadsService : IGamepadsService
                 input.Inverted = storedInput.Inverted;
                 input.Saturation = storedInput.DeadZoneHigh;
                 input.DeadZone = storedInput.DeadZoneLow;
+                input.EnableRamping = storedInput.EnableRamping;
+                input.RampTime = storedInput.RampTime;
                 if(input.SecondInput != null && storedInput.SecondInputSettings != null) {
                     if (storedInput.SecondInputSettings.CommandType != null && commandsDict.TryGetValue(storedInput.SecondInputSettings.CommandType, out var secondCommand))
                         input.SecondInput.SelectedCommand = secondCommand;
@@ -220,8 +249,21 @@ public class SdlGamepadsService : IGamepadsService
         ((SdlGamepadInfo)gamepadInfo).DeviceIndex = deviceIndex;
         ((SdlGamepadInfo)gamepadInfo).InstanceId = SDL.SDL_JoystickGetDeviceInstanceID(deviceIndex);
         gamepadInfo.IsConnected = true;
-        if (gamepadInfo.IsActivated)
+
+        // Check if there's already an instance in ActiveGamepads that was disconnected
+        var existingActiveGamepad = (SdlGamepad?)ActiveGamepads.FirstOrDefault(g => g.Id == gamepadInfo.Id);
+        if (existingActiveGamepad != null)
+        {
+            // Reconnect the existing instance
+            existingActiveGamepad.DeviceIndex = deviceIndex;
+            existingActiveGamepad.InstanceId = SDL.SDL_JoystickGetDeviceInstanceID(deviceIndex);
+            existingActiveGamepad.sdlJoystickPointer = SDL.SDL_JoystickOpen(deviceIndex);
+            existingActiveGamepad.IsConnected = true;
+        }
+        else if (gamepadInfo.IsActivated)
+        {
             ActivateGamepad(gamepadInfo);
+        }
     }
 
     private void OnJoystickRemoved(SDL.SDL_JoyDeviceEvent jdevice)
@@ -234,7 +276,9 @@ public class SdlGamepadsService : IGamepadsService
         var gamepad = (SdlGamepad?)ActiveGamepads.FirstOrDefault(g => g.Id == gamepadInfo.Id);
         if(gamepad != null) 
         {
-            DisconnectGamepad(gamepad);
+            // Don't remove from ActiveGamepads - just mark as disconnected
+            // This allows users to view and edit configuration while disconnected
+            gamepad.Unacquire();
             gamepad.IsConnected = false;
         }
         gamepadInfo.IsConnected = false;

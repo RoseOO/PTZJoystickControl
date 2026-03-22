@@ -44,7 +44,22 @@ public class PanCommand : IDynamicCommand
                 break;
         }
 
+        // Apply zoom-proportional scaling if enabled
+        if (Gamepad.ZoomProportionalMode && Gamepad.SelectedCamera != null)
+        {
+            value = ApplyZoomProportionalScaling(value);
+        }
+
         Gamepad.SelectedCamera?.Pan((byte)value, panDir);
+    }
+
+    private int ApplyZoomProportionalScaling(int value)
+    {
+        // TODO: Get actual zoom position from camera
+        // For now, assume a scaling factor based on settings
+        // When zoom is higher, reduce the pan speed proportionally
+        float scaleFactor = 1.0F - Gamepad.ZoomProportionalFactor;
+        return (int)(value * scaleFactor);
     }
 
 }

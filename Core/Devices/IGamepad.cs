@@ -13,6 +13,8 @@ public interface IGamepad : IGamepadInfo, INotifyPropertyChanged
     public abstract bool DetectInput { get; set; }
     public abstract IEnumerable<IInput> Inputs { get; }
     public abstract ViscaDeviceBase? SelectedCamera { get; set; }
+    public abstract bool ZoomProportionalMode { get; set; }
+    public abstract float ZoomProportionalFactor { get; set; }
 
     public abstract event PropertyChangedEventHandler? PersistentPropertyChanged;
 

@@ -12,6 +12,8 @@ public class InputSettings
     public bool Inverted { get; set; }
     public float DeadZoneHigh { get; set; }
     public float DeadZoneLow { get; set; }
+    public bool EnableRamping { get; set; }
+    public float RampTime { get; set; }
     public InputSettings? SecondInputSettings { get; set; }
 
     public InputSettings()
@@ -29,6 +31,8 @@ public class InputSettings
         Inverted = input.Inverted;
         DeadZoneHigh = input.Saturation;
         DeadZoneLow = input.DeadZone;
+        EnableRamping = input.EnableRamping;
+        RampTime = input.RampTime;
         SecondInputSettings = input.SecondInput != null ? new InputSettings(input.SecondInput) : null;
     }
 }

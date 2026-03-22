@@ -21,6 +21,8 @@ public interface IInput : INotifyPropertyChanged
     float Saturation { get; set; }
     bool Inverted { get; set; }
     bool DefaultCenter { get; set; }
+    bool EnableRamping { get; set; }
+    float RampTime { get; set; }
     string Name { get; }
     string Id { get; }
     IEnumerable<CommandValueOption>? Values { get; }

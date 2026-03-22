@@ -78,9 +78,13 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
     private void OnSelecetdGamepadPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IGamepad.IsConnected) && !SelectedGamepad!.IsConnected)
-            SelectedGamepad = null;
-        else
-            NotifyPropertyChanged(e.PropertyName ?? "");
+        {
+            // Stop all camera movements when gamepad disconnects
+            StopCameraMovement(SelectedGamepad.SelectedCamera);
+            // Keep the gamepad selected so configuration remains visible even when disconnected
+        }
+
+        NotifyPropertyChanged(e.PropertyName ?? "");
     }
 
     public void OnSelecetdGamepadInfoPropertyChanged(object? sender, PropertyChangedEventArgs e)
