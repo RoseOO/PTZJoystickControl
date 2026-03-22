@@ -30,14 +30,14 @@ public class InputViewModel : ViewModelBase, INotifyPropertyChanged
 
     public float InputValue { get => _input.InputValue; }
     public float RawInputValue { get => _input.RawInputValue; }
-    public int MinValue { get => InputType == InputType.Axis ? -1 : 0; }
+    public int MinValue { get => InputType == InputType.Axis && DefaultCenter ? -1 : 0; }
     public static int MaxValue { get => 1; }
     public float DeadZone { get => _input.DeadZone; set => _input.DeadZone = value; }
     public float Saturation { get => _input.Saturation; set => _input.Saturation = value; }
     public string OutputValue { get => $"{_input.CurrentDirection} {_input.CurrentValue}"; }
 
     public bool Inverted { get => _input.Inverted; set => _input.Inverted = value; }
-    public bool DefaultCenter { get => _input.DefaultCenter; set => _input.DefaultCenter = value; }
+    public bool DefaultCenter { get => _input.DefaultCenter; set { _input.DefaultCenter = value; NotifyPropertyChanged(); NotifyPropertyChanged(nameof(MinValue)); } }
     public bool EnableRamping { get => _input.EnableRamping; set { _input.EnableRamping = value; NotifyPropertyChanged(); } }
     public float RampTime { get => _input.RampTime; set { _input.RampTime = value; NotifyPropertyChanged(); } }
     public bool IsAxis { get => InputType == InputType.Axis; }

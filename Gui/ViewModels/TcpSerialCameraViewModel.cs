@@ -28,7 +28,18 @@ public class TcpSerialCameraViewModel : ViewModelBase, INotifyPropertyChanged
     public string Name
     {
         get => _camera.Name;
-        set => _camera.Name = value;
+        set
+        {
+            try
+            {
+                _camera.Name = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
+            }
+        }
     }
 
     public string IPAddress

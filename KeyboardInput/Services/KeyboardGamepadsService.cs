@@ -197,6 +197,7 @@ public class KeyboardGamepadsService : IGamepadsService
                 input.Inverted = storedInput.Inverted;
                 input.Saturation = storedInput.DeadZoneHigh;
                 input.DeadZone = storedInput.DeadZoneLow;
+                input.DefaultCenter = storedInput.DefaultCenter;
                 input.EnableRamping = storedInput.EnableRamping;
                 input.RampTime = storedInput.RampTime;
                 if (input.SecondInput != null && storedInput.SecondInputSettings != null)
