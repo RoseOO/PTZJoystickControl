@@ -1,0 +1,100 @@
+name: Build Linux Packages
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-packages:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # x64 (amd64) – produces .deb and .rpm
+          - runtime: linux-x64
+            deb_arch: amd64
+            rpm_arch: x86_64
+            pkg_suffix: linux_x64
+            create_rpm: true
+
+          # ARM 64-bit – Raspberry Pi Trixie (Debian 13) arm64, produces .deb and .rpm
+          - runtime: linux-arm64
+            deb_arch: arm64
+            rpm_arch: aarch64
+            pkg_suffix: linux_arm64
+            create_rpm: true
+
+          # ARM 32-bit – Raspberry Pi armhf (legacy / Raspberry Pi OS 32-bit), .deb only
+          - runtime: linux-arm
+            deb_arch: armhf
+            rpm_arch: armv7hl
+            pkg_suffix: linux_arm
+            create_rpm: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from release tag
+        id: version
+        shell: bash
+        run: |
+          version="${{ github.event.release.tag_name }}"
+          version="${version#v}"
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Install packaging tools (fpm)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential rpm
+          sudo gem install --no-document fpm
+
+      - name: Publish application
+        run: |
+          dotnet publish Gui/Gui.csproj -c Release \
+            -r ${{ matrix.runtime }} \
+            --self-contained \
+            -o publish/${{ matrix.runtime }} \
+            -p:Version=${{ steps.version.outputs.VERSION }}
+
+      - name: Create .deb package
+        run: |
+          fpm -s dir -t deb \
+            --name ptzjoystickcontrol \
+            --version "${{ steps.version.outputs.VERSION }}" \
+            --architecture "${{ matrix.deb_arch }}" \
+            --description "PTZ Joystick Control – Control PTZ cameras with a joystick" \
+            --url "https://github.com/${{ github.repository }}" \
+            --license "MIT" \
+            --package "PTZJoystickControl_${{ github.event.release.tag_name }}_${{ matrix.pkg_suffix }}.deb" \
+            publish/${{ matrix.runtime }}/=/opt/ptzjoystickcontrol/
+
+      - name: Create .rpm package
+        if: ${{ matrix.create_rpm }}
+        run: |
+          fpm -s dir -t rpm \
+            --name ptzjoystickcontrol \
+            --version "${{ steps.version.outputs.VERSION }}" \
+            --architecture "${{ matrix.rpm_arch }}" \
+            --description "PTZ Joystick Control – Control PTZ cameras with a joystick" \
+            --url "https://github.com/${{ github.repository }}" \
+            --license "MIT" \
+            --package "PTZJoystickControl_${{ github.event.release.tag_name }}_${{ matrix.pkg_suffix }}.rpm" \
+            publish/${{ matrix.runtime }}/=/opt/ptzjoystickcontrol/
+
+      - name: Upload packages to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.deb
+            *.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
