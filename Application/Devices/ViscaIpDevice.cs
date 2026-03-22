@@ -27,10 +27,12 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         {
             if (protocol == Protocol.Udp)
             {
+                Debug.WriteLine($"[{name}] IP Connect: Opening UDP socket for {ViscaIpEndpont}");
                 socket = UdpSocket.GetInstance();
                 UdpSocket.AddListenerCallback(ViscaIpEndpont, ParseViscaIPReply);
                 return;
             }
+            Debug.WriteLine($"[{name}] IP Connect: Creating TCP socket for {ViscaIpEndpont}");
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
                 SendTimeout = 500,
@@ -44,6 +46,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         {
             try
             {
+                Debug.WriteLine($"[{name}] IP Connect: TCP connecting to {ViscaIpEndpont}...");
                 SocketAsyncEventArgs socketAsyncEvArgs = new SocketAsyncEventArgs() { RemoteEndPoint = ViscaIpEndpont };
                 socketAsyncEvArgs.Completed += OnConnected;
 
@@ -52,7 +55,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
             }
             catch (Exception e)
             {
-                Console.WriteLine($"TCP BeginSocket {name}: {e.Message}");
+                Debug.WriteLine($"[{name}] IP Connect Error: TCP BeginSocket {ViscaIpEndpont}: {e.Message}");
                 EndSocket();
             }
         }
@@ -64,11 +67,18 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         try
         {
             if (eventArgs.SocketError == SocketError.Success)
+            {
+                Debug.WriteLine($"[{name}] IP Connect: TCP connected to {ViscaIpEndpont}");
                 socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnRecieve), null);
+            }
+            else
+            {
+                Debug.WriteLine($"[{name}] IP Connect: TCP connection failed to {ViscaIpEndpont}: {eventArgs.SocketError}");
+            }
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"TCP OnConnected {name}: {eventArgs?.SocketError} {e.Message}");
+            Debug.WriteLine($"[{name}] IP Connect Error: TCP OnConnected {ViscaIpEndpont}: {eventArgs?.SocketError} {e.Message}");
             EndSocket();
         }
     }
@@ -82,13 +92,13 @@ public class ViscaIpDevice : ViscaIPDeviceBase
         try
         {
             length = socket?.EndReceive(res, out var error) ?? 0;
-            Debug.WriteLine($"TCP OnReceive: {ViscaIpEndpont} - {BitConverter.ToString(receiveBuffer, 0, length)}");
+            Debug.WriteLine($"[{name}] IP Recv [TCP] <- {ViscaIpEndpont}: {BitConverter.ToString(receiveBuffer, 0, length)}");
             ParseViscaIPReply(receiveBuffer, length);
             socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnRecieve), null);
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"TCP OnReceive {name}: {e.Message}");
+            Debug.WriteLine($"[{name}] IP Recv Error [TCP] <- {ViscaIpEndpont}: {e.Message}");
             NotifyPropertyChanged(nameof(Connected));
             EndSocket();
         }
@@ -96,6 +106,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
 
     public override void EndSocket()
     {
+        Debug.WriteLine($"[{name}] IP Disconnect: Closing socket for {ViscaIpEndpont}");
         if (socket != null)
         {
             EventHandler<SocketAsyncEventArgs> onComplete = (sender, e) =>
@@ -119,6 +130,57 @@ public class ViscaIpDevice : ViscaIPDeviceBase
     public void ParseViscaIPReply(byte[] buffer, int length)
     {
         ViscaIPCommandParser.ParseReply(this, buffer, length);
+    }
+
+    // Inquiry methods
+    public override void SendInquiry(InquiryType inquiryType)
+    {
+        InquiryReplyParser = inquiryType switch
+        {
+            InquiryType.Power => ViscaCommandParser.ParsePowerInquiryReply,
+            InquiryType.Zoom => ViscaCommandParser.ParseZoomInquiryReply,
+            InquiryType.Focus => ViscaCommandParser.ParseFocusInquiryReply,
+            InquiryType.FocusMode => ViscaCommandParser.ParseFocusModeInquiryReply,
+            InquiryType.ExposureMode => ViscaCommandParser.ParseExposureModeInquiryReply,
+            InquiryType.Iris => ViscaCommandParser.ParseIrisInquiryReply,
+            InquiryType.Shutter => ViscaCommandParser.ParseShutterInquiryReply,
+            InquiryType.Gain => ViscaCommandParser.ParseGainInquiryReply,
+            InquiryType.WhiteBalanceMode => ViscaCommandParser.ParseWhiteBalanceModeInquiryReply,
+            InquiryType.RGain => ViscaCommandParser.ParseRGainInquiryReply,
+            InquiryType.BGain => ViscaCommandParser.ParseBGainInquiryReply,
+            InquiryType.Aperture => ViscaCommandParser.ParseApertureInquiryReply,
+            InquiryType.BacklightCompensation => ViscaCommandParser.ParseBacklightInquiryReply,
+            _ => null,
+        };
+        AddCommand(() => AddCameraInquiry(inquiryType));
+    }
+
+    public override void SendPanTiltInquiry()
+    {
+        InquiryReplyParser = ViscaCommandParser.ParsePanTiltPositionInquiryReply;
+        AddCommand(AddPanTiltPositionInquiry);
+    }
+
+    private ViscaIPHeaderType AddCameraInquiry(InquiryType inquiryType)
+    {
+        // 81 09 04 xx FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Inquiry;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+        tmpBuffer[tmpBuffIndex++] = (byte)inquiryType;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Inquery;
+    }
+
+    private ViscaIPHeaderType AddPanTiltPositionInquiry()
+    {
+        // 81 09 06 12 FF
+        tmpBuffer[tmpBuffIndex++] = 0x81;
+        tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Inquiry;
+        tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.PanTilt;
+        tmpBuffer[tmpBuffIndex++] = (byte)PanTiltInquiryType.Position;
+        tmpBuffer[tmpBuffIndex++] = (byte)Terminator.Terminate;
+        return ViscaIPHeaderType.Inquery;
     }
 
     public override void Power(Power power)
@@ -617,7 +679,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
     {
         if (socket == null)
         {
-            Debug.WriteLine("No socket: " + ViscaIpEndpont);
+            Debug.WriteLine($"[{name}] IP Send: No socket for {ViscaIpEndpont} - initiating connection");
             BeginSocket();
             return;
         }
@@ -625,18 +687,19 @@ public class ViscaIpDevice : ViscaIPDeviceBase
 
         if (protocol == Protocol.Tcp && !socket.Connected)
         {
-            Debug.WriteLine("Reconnecting to client: " + ViscaIpEndpont);
+            Debug.WriteLine($"[{name}] IP Send: TCP not connected to {ViscaIpEndpont} - reconnecting");
             BeginSocket();
             return;
         }
 
         try
         {
+            Debug.WriteLine($"[{name}] IP Send [{protocol}] -> {ViscaIpEndpont}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
             socket.SendTo(sendBuffer, sendBuffIndex, SocketFlags.None, ViscaIpEndpont);
         }
         catch (Exception e)
         {
-            Debug.WriteLine(e);
+            Debug.WriteLine($"[{name}] IP Send Error [{protocol}] -> {ViscaIpEndpont}: {e.Message}");
             EndSocket();
         }
     }

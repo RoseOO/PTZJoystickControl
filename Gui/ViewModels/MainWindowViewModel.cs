@@ -11,6 +11,8 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
 {
     private CameraOverlayWindow? _overlayWindow;
     private readonly CameraOverlayViewModel _overlayViewModel;
+    private LogWindow? _logWindow;
+    private readonly LogWindowViewModel _logWindowViewModel;
 
     public GamepadsViewModel GamepadsViewModel { get; }
     public CamerasViewModel CamerasViewModel { get; }
@@ -51,6 +53,8 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _overlayViewModel.Refresh();
         };
+
+        _logWindowViewModel = new LogWindowViewModel();
     }
 
     public bool AcrylicEnabled { get; }
@@ -74,6 +78,24 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
             };
             _overlayWindow.Closed += (s, e) => _overlayWindow = null;
             _overlayWindow.Show();
+        }
+    }
+
+    public void ToggleDebugLog()
+    {
+        if (_logWindow != null)
+        {
+            _logWindow.Close();
+            _logWindow = null;
+        }
+        else
+        {
+            _logWindow = new LogWindow
+            {
+                DataContext = _logWindowViewModel,
+            };
+            _logWindow.Closed += (s, e) => _logWindow = null;
+            _logWindow.Show();
         }
     }
 

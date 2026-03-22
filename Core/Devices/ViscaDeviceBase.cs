@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace PtzJoystickControl.Core.Devices;
@@ -122,6 +123,105 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
     
     public Power? PowerState { get; protected internal set; }
 
+    // Camera feedback properties
+    private ushort? _zoomPosition;
+    public ushort? ZoomPosition
+    {
+        get => _zoomPosition;
+        protected internal set { _zoomPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private short? _panPosition;
+    public short? PanPosition
+    {
+        get => _panPosition;
+        protected internal set { _panPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private short? _tiltPosition;
+    public short? TiltPosition
+    {
+        get => _tiltPosition;
+        protected internal set { _tiltPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _focusPosition;
+    public ushort? FocusPosition
+    {
+        get => _focusPosition;
+        protected internal set { _focusPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private FocusMode? _focusModeState;
+    public FocusMode? FocusModeState
+    {
+        get => _focusModeState;
+        protected internal set { _focusModeState = value; NotifyPropertyChanged(); }
+    }
+
+    private ExposureMode? _exposureModeState;
+    public ExposureMode? ExposureModeState
+    {
+        get => _exposureModeState;
+        protected internal set { _exposureModeState = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _irisPosition;
+    public ushort? IrisPosition
+    {
+        get => _irisPosition;
+        protected internal set { _irisPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _shutterPosition;
+    public ushort? ShutterPosition
+    {
+        get => _shutterPosition;
+        protected internal set { _shutterPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _gainPosition;
+    public ushort? GainPosition
+    {
+        get => _gainPosition;
+        protected internal set { _gainPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private WhiteBalanceMode? _whiteBalanceModeState;
+    public WhiteBalanceMode? WhiteBalanceModeState
+    {
+        get => _whiteBalanceModeState;
+        protected internal set { _whiteBalanceModeState = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _rGainPosition;
+    public ushort? RGainPosition
+    {
+        get => _rGainPosition;
+        protected internal set { _rGainPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _bGainPosition;
+    public ushort? BGainPosition
+    {
+        get => _bGainPosition;
+        protected internal set { _bGainPosition = value; NotifyPropertyChanged(); }
+    }
+
+    private ushort? _aperturePosition;
+    public ushort? AperturePosition
+    {
+        get => _aperturePosition;
+        protected internal set { _aperturePosition = value; NotifyPropertyChanged(); }
+    }
+
+    private BacklightCompensation? _backlightState;
+    public BacklightCompensation? BacklightState
+    {
+        get => _backlightState;
+        protected internal set { _backlightState = value; NotifyPropertyChanged(); }
+    }
+
     public abstract void Power(Power byteVal);
     public abstract void Pan(byte panSpeed, PanDir panDir);
     public abstract void Tilt(byte tiltSpeed, TiltDir tiltDir);
@@ -142,4 +242,64 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
     public abstract void AdjustBlueGain(GainDir direction);
     public abstract void AdjustAperture(ApertureDir direction);
     public abstract void TriggerWhiteBalance();
+
+    // Inquiry methods
+    public abstract void SendInquiry(InquiryType inquiryType);
+    public abstract void SendPanTiltInquiry();
+
+    // Polling support
+    private Timer? _pollTimer;
+    private bool _pollingEnabled;
+
+    public bool PollingEnabled
+    {
+        get => _pollingEnabled;
+        set
+        {
+            if (_pollingEnabled == value) return;
+            _pollingEnabled = value;
+            if (value)
+                StartPolling();
+            else
+                StopPolling();
+            NotifyPropertyChanged();
+        }
+    }
+
+    private void StartPolling()
+    {
+        _pollTimer?.Dispose();
+        _pollTimer = new Timer(PollCamera, null, 0, 2000);
+    }
+
+    private void StopPolling()
+    {
+        _pollTimer?.Dispose();
+        _pollTimer = null;
+    }
+
+    private void PollCamera(object? state)
+    {
+        if (!Connected) return;
+        try
+        {
+            SendInquiry(InquiryType.Zoom);
+            SendInquiry(InquiryType.Focus);
+            SendInquiry(InquiryType.FocusMode);
+            SendInquiry(InquiryType.ExposureMode);
+            SendInquiry(InquiryType.Iris);
+            SendInquiry(InquiryType.Shutter);
+            SendInquiry(InquiryType.Gain);
+            SendInquiry(InquiryType.WhiteBalanceMode);
+            SendInquiry(InquiryType.RGain);
+            SendInquiry(InquiryType.BGain);
+            SendInquiry(InquiryType.Aperture);
+            SendInquiry(InquiryType.BacklightCompensation);
+            SendPanTiltInquiry();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"PollCamera {name}: {e.Message}");
+        }
+    }
 }

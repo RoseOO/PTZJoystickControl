@@ -1,4 +1,5 @@
 using PtzJoystickControl.Core.Devices;
+using PtzJoystickControl.Core.ViscaCommands;
 using System.Diagnostics;
 using System.IO.Ports;
 
@@ -27,6 +28,7 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
 
         try
         {
+            Debug.WriteLine($"[{name}] Serial Connect: Opening {portName} at {baudRate} baud");
             _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
             {
                 ReadTimeout = 500,
@@ -34,11 +36,12 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
             };
             _serialPort.DataReceived += OnDataReceived;
             _serialPort.Open();
+            Debug.WriteLine($"[{name}] Serial Connect: {portName} opened successfully");
             NotifyPropertyChanged(nameof(Connected));
         }
         catch (Exception e)
         {
-            Debug.WriteLine($"Serial BeginPort {name}: {e.Message}");
+            Debug.WriteLine($"[{name}] Serial Connect Error: {portName} - {e.Message}");
             _serialPort?.Dispose();
             _serialPort = null;
         }
@@ -50,12 +53,13 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
         {
             try
             {
+                Debug.WriteLine($"[{name}] Serial Disconnect: Closing {portName}");
                 _serialPort.DataReceived -= OnDataReceived;
                 if (_serialPort.IsOpen) _serialPort.Close();
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Serial EndPort {name}: {e.Message}");
+                Debug.WriteLine($"[{name}] Serial Disconnect Error: {portName} - {e.Message}");
             }
             _serialPort.Dispose();
             _serialPort = null;
@@ -72,11 +76,11 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
             byte[] buffer = new byte[bytesToRead];
             _serialPort.Read(buffer, 0, bytesToRead);
             LastReceiveTime = DateTime.UtcNow;
-            Debug.WriteLine($"Serial Received: {BitConverter.ToString(buffer)}");
+            Debug.WriteLine($"[{name}] Serial Recv <- {portName}: {BitConverter.ToString(buffer)}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Serial OnDataReceived {name}: {ex.Message}");
+            Debug.WriteLine($"[{name}] Serial Recv Error <- {portName}: {ex.Message}");
         }
     }
 
@@ -84,6 +88,7 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
     {
         if (_serialPort == null || !_serialPort.IsOpen)
         {
+            Debug.WriteLine($"[{name}] Serial Send: Port not open - initiating connection");
             BeginPort();
             return;
         }
@@ -92,12 +97,13 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
         {
             try
             {
+                Debug.WriteLine($"[{name}] Serial Send -> {portName}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
                 _serialPort.Write(sendBuffer, 0, sendBuffIndex);
                 lastSendTime = DateTime.UtcNow;
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Serial SendCommand {name}: {e.Message}");
+                Debug.WriteLine($"[{name}] Serial Send Error -> {portName}: {e.Message}");
                 EndPort();
             }
         }
@@ -367,6 +373,50 @@ public class ViscaSerialDevice : ViscaSerialDeviceBase
             tmpBuffer[tmpBuffIndex++] = 0x04;
             tmpBuffer[tmpBuffIndex++] = 0x10;
             tmpBuffer[tmpBuffIndex++] = 0x05;
+            tmpBuffer[tmpBuffIndex++] = 0xFF;
+        });
+    }
+
+    public override void SendInquiry(InquiryType inquiryType)
+    {
+        InquiryReplyParser = inquiryType switch
+        {
+            InquiryType.Power => ViscaCommandParser.ParsePowerInquiryReply,
+            InquiryType.Zoom => ViscaCommandParser.ParseZoomInquiryReply,
+            InquiryType.Focus => ViscaCommandParser.ParseFocusInquiryReply,
+            InquiryType.FocusMode => ViscaCommandParser.ParseFocusModeInquiryReply,
+            InquiryType.ExposureMode => ViscaCommandParser.ParseExposureModeInquiryReply,
+            InquiryType.Iris => ViscaCommandParser.ParseIrisInquiryReply,
+            InquiryType.Shutter => ViscaCommandParser.ParseShutterInquiryReply,
+            InquiryType.Gain => ViscaCommandParser.ParseGainInquiryReply,
+            InquiryType.WhiteBalanceMode => ViscaCommandParser.ParseWhiteBalanceModeInquiryReply,
+            InquiryType.RGain => ViscaCommandParser.ParseRGainInquiryReply,
+            InquiryType.BGain => ViscaCommandParser.ParseBGainInquiryReply,
+            InquiryType.Aperture => ViscaCommandParser.ParseApertureInquiryReply,
+            InquiryType.BacklightCompensation => ViscaCommandParser.ParseBacklightInquiryReply,
+            _ => null,
+        };
+        BuildAndSend(() =>
+        {
+            // 81 09 04 xx FF
+            tmpBuffer[tmpBuffIndex++] = 0x81;
+            tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Inquiry;
+            tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.Camera;
+            tmpBuffer[tmpBuffIndex++] = (byte)inquiryType;
+            tmpBuffer[tmpBuffIndex++] = 0xFF;
+        });
+    }
+
+    public override void SendPanTiltInquiry()
+    {
+        InquiryReplyParser = ViscaCommandParser.ParsePanTiltPositionInquiryReply;
+        BuildAndSend(() =>
+        {
+            // 81 09 06 12 FF
+            tmpBuffer[tmpBuffIndex++] = 0x81;
+            tmpBuffer[tmpBuffIndex++] = (byte)PacketType.Inquiry;
+            tmpBuffer[tmpBuffIndex++] = (byte)CommandCategory.PanTilt;
+            tmpBuffer[tmpBuffIndex++] = (byte)PanTiltInquiryType.Position;
             tmpBuffer[tmpBuffIndex++] = 0xFF;
         });
     }

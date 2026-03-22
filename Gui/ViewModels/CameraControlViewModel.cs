@@ -22,11 +22,87 @@ public class CameraControlViewModel : ViewModelBase, INotifyPropertyChanged
         {
             if (_camera != value)
             {
+                if (_camera != null)
+                    _camera.PropertyChanged -= OnCameraPropertyChanged;
                 _camera = value;
+                if (_camera != null)
+                    _camera.PropertyChanged += OnCameraPropertyChanged;
                 NotifyPropertyChanged();
                 NotifyPropertyChanged(nameof(HasCamera));
+                NotifyFeedbackProperties();
             }
         }
+    }
+
+    private void OnCameraPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(ViscaDeviceBase.ZoomPosition):
+            case nameof(ViscaDeviceBase.PanPosition):
+            case nameof(ViscaDeviceBase.TiltPosition):
+            case nameof(ViscaDeviceBase.FocusPosition):
+            case nameof(ViscaDeviceBase.FocusModeState):
+            case nameof(ViscaDeviceBase.ExposureModeState):
+            case nameof(ViscaDeviceBase.IrisPosition):
+            case nameof(ViscaDeviceBase.ShutterPosition):
+            case nameof(ViscaDeviceBase.GainPosition):
+            case nameof(ViscaDeviceBase.WhiteBalanceModeState):
+            case nameof(ViscaDeviceBase.RGainPosition):
+            case nameof(ViscaDeviceBase.BGainPosition):
+            case nameof(ViscaDeviceBase.AperturePosition):
+            case nameof(ViscaDeviceBase.BacklightState):
+            case nameof(ViscaDeviceBase.PowerState):
+            case nameof(ViscaDeviceBase.Connected):
+            case nameof(ViscaDeviceBase.PollingEnabled):
+                NotifyPropertyChanged(e.PropertyName!);
+                break;
+        }
+    }
+
+    private void NotifyFeedbackProperties()
+    {
+        NotifyPropertyChanged(nameof(ZoomPosition));
+        NotifyPropertyChanged(nameof(PanPosition));
+        NotifyPropertyChanged(nameof(TiltPosition));
+        NotifyPropertyChanged(nameof(FocusPosition));
+        NotifyPropertyChanged(nameof(FocusModeState));
+        NotifyPropertyChanged(nameof(ExposureModeState));
+        NotifyPropertyChanged(nameof(IrisPosition));
+        NotifyPropertyChanged(nameof(ShutterPosition));
+        NotifyPropertyChanged(nameof(GainPosition));
+        NotifyPropertyChanged(nameof(WhiteBalanceModeState));
+        NotifyPropertyChanged(nameof(RGainPosition));
+        NotifyPropertyChanged(nameof(BGainPosition));
+        NotifyPropertyChanged(nameof(AperturePosition));
+        NotifyPropertyChanged(nameof(BacklightState));
+        NotifyPropertyChanged(nameof(PowerState));
+        NotifyPropertyChanged(nameof(Connected));
+        NotifyPropertyChanged(nameof(PollingEnabled));
+    }
+
+    // Camera feedback properties (read-through to camera)
+    public ushort? ZoomPosition => _camera?.ZoomPosition;
+    public short? PanPosition => _camera?.PanPosition;
+    public short? TiltPosition => _camera?.TiltPosition;
+    public ushort? FocusPosition => _camera?.FocusPosition;
+    public FocusMode? FocusModeState => _camera?.FocusModeState;
+    public ExposureMode? ExposureModeState => _camera?.ExposureModeState;
+    public ushort? IrisPosition => _camera?.IrisPosition;
+    public ushort? ShutterPosition => _camera?.ShutterPosition;
+    public ushort? GainPosition => _camera?.GainPosition;
+    public WhiteBalanceMode? WhiteBalanceModeState => _camera?.WhiteBalanceModeState;
+    public ushort? RGainPosition => _camera?.RGainPosition;
+    public ushort? BGainPosition => _camera?.BGainPosition;
+    public ushort? AperturePosition => _camera?.AperturePosition;
+    public BacklightCompensation? BacklightState => _camera?.BacklightState;
+    public Power? PowerState => _camera?.PowerState;
+    public bool Connected => _camera?.Connected ?? false;
+
+    public bool PollingEnabled
+    {
+        get => _camera?.PollingEnabled ?? false;
+        set { if (_camera != null) _camera.PollingEnabled = value; NotifyPropertyChanged(); }
     }
 
     public bool HasCamera => _camera != null;
