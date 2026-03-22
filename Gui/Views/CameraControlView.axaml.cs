@@ -39,6 +39,30 @@ public partial class CameraControlView : UserControl
     public CameraControlView()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        AttachedToVisualTree += OnAttachedToVisualTree;
+        DetachedFromVisualTree += OnDetachedFromVisualTree;
+    }
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        // Stop ramping when DataContext changes
+        StopRampTimer();
+        _currentPanSpeed = 0;
+        _currentTiltSpeed = 0;
+        _targetPanSpeed = 0;
+        _targetTiltSpeed = 0;
+    }
+
+    private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        // Reset state when attached
+    }
+
+    private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        // Cleanup timer when control is removed
+        StopRampTimer();
     }
 
     private void InitializeComponent()
@@ -122,29 +146,38 @@ public partial class CameraControlView : UserControl
         e.Pointer.Capture(null);
         ResetJoystickThumb();
 
-        if (DataContext is CameraControlViewModel vm)
+        if (DataContext is not CameraControlViewModel vm || vm.Camera == null)
         {
-            if (vm.JoystickRampingEnabled)
-            {
-                // Set targets to zero for ramp out; timer will handle the deceleration
-                _targetPanSpeed = 0;
-                _targetTiltSpeed = 0;
-                _targetPanDir = PanDir.Stop;
-                _targetTiltDir = TiltDir.Stop;
-                StartRampTimer();
-            }
-            else
-            {
-                StopRampTimer();
-                _currentPanSpeed = 0;
-                _currentTiltSpeed = 0;
-                vm.MoveStop();
-            }
+            StopRampTimer();
+            return;
+        }
+
+        if (vm.JoystickRampingEnabled)
+        {
+            // Set targets to zero for ramp out; timer will handle the deceleration
+            _targetPanSpeed = 0;
+            _targetTiltSpeed = 0;
+            _targetPanDir = PanDir.Stop;
+            _targetTiltDir = TiltDir.Stop;
+            StartRampTimer();
+        }
+        else
+        {
+            StopRampTimer();
+            _currentPanSpeed = 0;
+            _currentTiltSpeed = 0;
+            vm.MoveStop();
         }
     }
 
     private void UpdateJoystickPosition(Point pos)
     {
+        if (DataContext is not CameraControlViewModel vm || vm.Camera == null)
+        {
+            StopRampTimer();
+            return;
+        }
+
         double dx = pos.X - Center;
         double dy = pos.Y - Center;
         double distance = Math.Sqrt(dx * dx + dy * dy);
@@ -167,8 +200,6 @@ public partial class CameraControlView : UserControl
         // Convert to normalized -1..1 range
         double normX = dx / MaxRadius;
         double normY = -dy / MaxRadius; // Invert Y: up is positive
-
-        if (DataContext is not CameraControlViewModel vm) return;
 
         // Calculate target speeds
         float targetPan = (float)(Math.Abs(normX) * vm.PanSpeed);
@@ -218,47 +249,55 @@ public partial class CameraControlView : UserControl
 
     private void RampTimerTick(object? state)
     {
-        DateTime now = DateTime.UtcNow;
-        float deltaTime = (float)(now - _lastRampUpdate).TotalSeconds;
-        _lastRampUpdate = now;
-
-        if (DataContext is not CameraControlViewModel vm)
+        try
         {
-            StopRampTimer();
-            return;
-        }
+            DateTime now = DateTime.UtcNow;
+            float deltaTime = (float)(now - _lastRampUpdate).TotalSeconds;
+            _lastRampUpdate = now;
 
-        float rampTime = vm.JoystickRampTime;
-        if (rampTime <= 0) rampTime = 0.05f;
-
-        // Ramp pan speed toward target
-        float panRampSpeed = vm.PanSpeed / rampTime;
-        _currentPanSpeed = RampValue(_currentPanSpeed, _targetPanSpeed, panRampSpeed * deltaTime);
-
-        // Ramp tilt speed toward target
-        float tiltRampSpeed = vm.TiltSpeed / rampTime;
-        _currentTiltSpeed = RampValue(_currentTiltSpeed, _targetTiltSpeed, tiltRampSpeed * deltaTime);
-
-        // Check if ramping is complete and we've stopped
-        bool stopped = _currentPanSpeed < MinimumSpeedThreshold && _currentTiltSpeed < MinimumSpeedThreshold
-                       && _targetPanSpeed < MinimumSpeedThreshold && _targetTiltSpeed < MinimumSpeedThreshold;
-
-        if (stopped)
-        {
-            _currentPanSpeed = 0;
-            _currentTiltSpeed = 0;
-            // Send final stop on UI thread, then stop the timer
-            Dispatcher.UIThread.Post(() =>
+            if (DataContext is not CameraControlViewModel vm || vm.Camera == null)
             {
-                if (DataContext is CameraControlViewModel vm2)
-                    vm2.MoveStop();
-            });
-            StopRampTimer();
-            return;
-        }
+                StopRampTimer();
+                return;
+            }
 
-        // Send the ramped command on UI thread
-        Dispatcher.UIThread.Post(() => SendPanTiltCommand(vm));
+            float rampTime = vm.JoystickRampTime;
+            if (rampTime <= 0) rampTime = 0.05f;
+
+            // Ramp pan speed toward target
+            float panRampSpeed = vm.PanSpeed / rampTime;
+            _currentPanSpeed = RampValue(_currentPanSpeed, _targetPanSpeed, panRampSpeed * deltaTime);
+
+            // Ramp tilt speed toward target
+            float tiltRampSpeed = vm.TiltSpeed / rampTime;
+            _currentTiltSpeed = RampValue(_currentTiltSpeed, _targetTiltSpeed, tiltRampSpeed * deltaTime);
+
+            // Check if ramping is complete and we've stopped
+            bool stopped = _currentPanSpeed < MinimumSpeedThreshold && _currentTiltSpeed < MinimumSpeedThreshold
+                           && _targetPanSpeed < MinimumSpeedThreshold && _targetTiltSpeed < MinimumSpeedThreshold;
+
+            if (stopped)
+            {
+                _currentPanSpeed = 0;
+                _currentTiltSpeed = 0;
+                // Send final stop on UI thread, then stop the timer
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (DataContext is CameraControlViewModel vm2)
+                        vm2.MoveStop();
+                });
+                StopRampTimer();
+                return;
+            }
+
+            // Send the ramped command on UI thread
+            Dispatcher.UIThread.Post(() => SendPanTiltCommand(vm));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"[CameraControlView] RampTimerTick Error: {ex.Message}");
+            StopRampTimer();
+        }
     }
 
     private static float RampValue(float current, float target, float maxChange)
@@ -271,6 +310,8 @@ public partial class CameraControlView : UserControl
 
     private void SendPanTiltCommand(CameraControlViewModel vm)
     {
+        if (vm?.Camera == null) return;
+
         byte panSpeed = (byte)Math.Clamp((int)_currentPanSpeed, 0, 24);
         byte tiltSpeed = (byte)Math.Clamp((int)_currentTiltSpeed, 0, 20);
 
@@ -284,7 +325,7 @@ public partial class CameraControlView : UserControl
         if (panDir == PanDir.Stop && tiltDir == TiltDir.Stop)
             vm.MoveStop();
         else
-            vm.Camera?.PanTilt(panSpeed, tiltSpeed, panDir, tiltDir);
+            vm.Camera.PanTilt(panSpeed, tiltSpeed, panDir, tiltDir);
     }
 
     private void ResetJoystickThumb()
