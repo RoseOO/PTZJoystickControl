@@ -33,6 +33,7 @@ public class Input : IInput
     // Ramping state
     private float targetValue = 0;
     private float currentRampedValue = 0;
+    private Direction lastRampDirection = Direction.Stop;
     private DateTime lastUpdateTime = DateTime.UtcNow;
     private Timer? _rampTimer;
     private const int RampTimerIntervalMs = 20;
@@ -331,7 +332,17 @@ public class Input : IInput
                         // For centered axes, ramp the absolute value then reapply direction
                         targetValue = Math.Abs(mappedValue);
                         finalValue = ApplyRamping(targetValue, dynCommand.MinValue, range);
-                        if (mappedValue < 0) finalValue = -finalValue;
+
+                        // Track direction: update when actually moving, keep last direction during ramp-down
+                        if (mappedValue < 0)
+                            lastRampDirection = Direction.Low;
+                        else if (mappedValue > 0)
+                            lastRampDirection = Direction.High;
+                        // When mappedValue == 0 (released), keep lastRampDirection for ramp-down
+
+                        // Apply tracked direction to the ramped value
+                        if (lastRampDirection == Direction.Low)
+                            finalValue = -finalValue;
                     }
 
                     if (finalValue < 0)
@@ -352,6 +363,7 @@ public class Input : IInput
                     {
                         CurrentValue = 0;
                         currentRampedValue = 0;
+                        lastRampDirection = Direction.Stop;
                         dynCommand.Execute(0, Direction.Stop);
                     }
                 }

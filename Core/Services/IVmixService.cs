@@ -13,6 +13,6 @@ public interface IVmixService
     Task ConnectAsync();
     void Disconnect();
     Task SendPreviewInputAsync(int inputNumber);
-    Task SendCutAsync();
-    Task SendFadeAsync(int duration);
+    Task SendCutAsync(int? mix = null);
+    Task SendFadeAsync(int duration, int? mix = null);
 }

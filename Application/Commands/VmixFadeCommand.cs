@@ -21,17 +21,33 @@ public class VmixFadeCommand : IStaticCommand
     public override string ButtonParameterName => "Duration (ms)";
 
     public override IEnumerable<CommandValueOption> Options => optionsList;
-    private static readonly IEnumerable<CommandValueOption> optionsList = new CommandValueOption[] {
-        new CommandValueOption("500ms", 500),
-        new CommandValueOption("1000ms", 1000),
-        new CommandValueOption("1500ms", 1500),
-        new CommandValueOption("2000ms", 2000),
-        new CommandValueOption("3000ms", 3000),
-    };
+    // Value encoding: lower 16 bits = duration, upper 16 bits = mix number (0 = default/no mix)
+    private static readonly IEnumerable<CommandValueOption> optionsList = BuildOptions().ToArray();
+
+    private static IEnumerable<CommandValueOption> BuildOptions()
+    {
+        int[] durations = { 500, 1000, 1500, 2000, 3000 };
+        int[] mixes = { 0, 2, 3, 4 };
+
+        foreach (int mix in mixes)
+        {
+            foreach (int duration in durations)
+            {
+                int encodedValue = (mix << 16) | duration;
+                string name = mix == 0
+                    ? $"{duration}ms"
+                    : $"{duration}ms (Mix {mix})";
+                yield return new CommandValueOption(name, encodedValue);
+            }
+        }
+    }
 
     public override void Execute(int value)
     {
-        if (value <= 0) value = 1000;
-        _ = _vmixService.SendFadeAsync(value);
+        int duration = value & 0xFFFF;
+        int mix = value >> 16;
+        if (duration <= 0) duration = 1000;
+        int? mixParam = mix > 0 ? mix : null;
+        _ = _vmixService.SendFadeAsync(duration, mixParam);
     }
 }
