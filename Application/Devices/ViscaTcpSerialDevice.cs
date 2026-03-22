@@ -1,4 +1,5 @@
 using PtzJoystickControl.Core.Devices;
+using PtzJoystickControl.Core.Utils;
 using PtzJoystickControl.Core.ViscaCommands;
 using System.Diagnostics;
 using System.Net;
@@ -26,12 +27,26 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
         }
     }
 
-    public override bool Connected => socket != null && socket.Connected;
+    public override bool Connected => socket != null && (protocol == Protocol.Udp || socket.Connected);
 
     public override void BeginSocket()
     {
         if (socket == null)
         {
+            if (protocol == Protocol.Udp)
+            {
+                Trace.WriteLine($"[{name}] VISCA/UDP Connect: Opening UDP socket for {ViscaIpEndpont}");
+                socket = UdpSocket.GetInstance();
+                UdpSocket.AddListenerCallback(ViscaIpEndpont, OnUdpReceive);
+                NotifyPropertyChanged(nameof(Connected));
+
+                if (sendAddressSet)
+                {
+                    SendAddressSetCommand();
+                    SendIfClearCommand();
+                }
+                return;
+            }
             Trace.WriteLine($"[{name}] VISCA/TCP Connect: Creating TCP socket for {ViscaIpEndpont}");
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
@@ -42,7 +57,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             };
         }
 
-        if (!socket.Connected)
+        if (protocol == Protocol.Tcp && !socket.Connected)
         {
             try
             {
@@ -71,7 +86,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
                 Trace.WriteLine($"[{name}] VISCA/TCP Connect: Connected to {ViscaIpEndpont}");
                 OnConnectedSuccessfully();
                 _receiveAccumulatorIndex = 0;
-                socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+                socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnTcpReceive), null);
 
                 if (sendAddressSet)
                 {
@@ -92,7 +107,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
         }
     }
 
-    private void OnReceive(IAsyncResult res)
+    private void OnTcpReceive(IAsyncResult res)
     {
         int length = 0;
         try
@@ -106,13 +121,26 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             }
             Trace.WriteLine($"[{name}] VISCA/TCP Recv <- {ViscaIpEndpont}: {BitConverter.ToString(receiveBuffer, 0, length)}");
             ProcessReceivedData(receiveBuffer, length);
-            socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+            socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnTcpReceive), null);
         }
         catch (Exception e)
         {
             Trace.WriteLine($"[{name}] VISCA/TCP Recv Error <- {ViscaIpEndpont}: {e.Message}");
             NotifyPropertyChanged(nameof(Connected));
             EndSocket();
+        }
+    }
+
+    private void OnUdpReceive(byte[] buffer, int length)
+    {
+        try
+        {
+            Trace.WriteLine($"[{name}] VISCA/UDP Recv <- {ViscaIpEndpont}: {BitConverter.ToString(buffer, 0, length)}");
+            ProcessReceivedData(buffer, length);
+        }
+        catch (Exception e)
+        {
+            Trace.WriteLine($"[{name}] VISCA/UDP Recv Error <- {ViscaIpEndpont}: {e.Message}");
         }
     }
 
@@ -158,23 +186,32 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
 
     public override void EndSocket()
     {
-        Trace.WriteLine($"[{name}] VISCA/TCP Disconnect: Closing socket for {ViscaIpEndpont}");
+        Trace.WriteLine($"[{name}] VISCA/{protocol} Disconnect: Closing socket for {ViscaIpEndpont}");
         if (socket != null)
         {
-            try
+            if (protocol == Protocol.Udp)
             {
-                if (socket.Connected)
-                    socket.Shutdown(SocketShutdown.Both);
+                UdpSocket.RemoveListenerCallback(ViscaIpEndpont);
+                socket = null;
+                NotifyPropertyChanged(nameof(Connected));
             }
-            catch { }
-            try
+            else
             {
-                socket.Close();
-                socket.Dispose();
+                try
+                {
+                    if (socket.Connected)
+                        socket.Shutdown(SocketShutdown.Both);
+                }
+                catch { }
+                try
+                {
+                    socket.Close();
+                    socket.Dispose();
+                }
+                catch { }
+                socket = null;
+                NotifyPropertyChanged(nameof(Connected));
             }
-            catch { }
-            socket = null;
-            NotifyPropertyChanged(nameof(Connected));
         }
         OnDisconnected();
     }
@@ -190,7 +227,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             sendBuffer[sendBuffIndex++] = 0x30;
             sendBuffer[sendBuffIndex++] = 0x01; // Start address assignment from address 1
             sendBuffer[sendBuffIndex++] = (byte)Terminator.Terminate;
-            Trace.WriteLine($"[{name}] VISCA/TCP Init: Sending Address Set: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
+            Trace.WriteLine($"[{name}] VISCA/{protocol} Init: Sending Address Set: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
             SendRawCommand();
         }
     }
@@ -207,28 +244,39 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             sendBuffer[sendBuffIndex++] = 0x00; // Interface
             sendBuffer[sendBuffIndex++] = 0x01; // IF_Clear
             sendBuffer[sendBuffIndex++] = (byte)Terminator.Terminate;
-            Trace.WriteLine($"[{name}] VISCA/TCP Init: Sending IF_Clear: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
+            Trace.WriteLine($"[{name}] VISCA/{protocol} Init: Sending IF_Clear: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
             SendRawCommand();
         }
     }
 
     private void SendRawCommand()
     {
-        if (socket == null || !socket.Connected)
+        if (socket == null)
         {
-            Trace.WriteLine($"[{name}] VISCA/TCP Send: Not connected to {ViscaIpEndpont}");
+            Trace.WriteLine($"[{name}] VISCA/{protocol} Send: No socket for {ViscaIpEndpont} - initiating connection");
+            BeginSocket();
+            return;
+        }
+
+        if (protocol == Protocol.Tcp && !socket.Connected)
+        {
+            Trace.WriteLine($"[{name}] VISCA/TCP Send: Not connected to {ViscaIpEndpont} - reconnecting");
+            BeginSocket();
             return;
         }
 
         try
         {
-            Trace.WriteLine($"[{name}] VISCA/TCP Send -> {ViscaIpEndpont}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
-            socket.Send(sendBuffer, sendBuffIndex, SocketFlags.None);
+            Trace.WriteLine($"[{name}] VISCA/{protocol} Send -> {ViscaIpEndpont}: {BitConverter.ToString(sendBuffer, 0, sendBuffIndex)}");
+            if (protocol == Protocol.Udp)
+                socket.SendTo(sendBuffer, sendBuffIndex, SocketFlags.None, ViscaIpEndpont);
+            else
+                socket.Send(sendBuffer, sendBuffIndex, SocketFlags.None);
             lastSendTime = DateTime.UtcNow;
         }
         catch (Exception e)
         {
-            Trace.WriteLine($"[{name}] VISCA/TCP Send Error -> {ViscaIpEndpont}: {e.Message}");
+            Trace.WriteLine($"[{name}] VISCA/{protocol} Send Error -> {ViscaIpEndpont}: {e.Message}");
             EndSocket();
         }
     }

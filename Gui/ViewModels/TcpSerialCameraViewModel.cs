@@ -2,6 +2,7 @@ using Avalonia.Data;
 using Avalonia.Utilities;
 using PtzJoystickControl.Core.Devices;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,8 @@ namespace PtzJoystickControl.Gui.ViewModels;
 public class TcpSerialCameraViewModel : ViewModelBase, INotifyPropertyChanged
 {
     private readonly ViscaTcpSerialDeviceBase _camera;
+
+    public static IEnumerable<Protocol> Protocols { get; } = Enum.GetValues<Protocol>();
 
     public TcpSerialCameraViewModel(ViscaDeviceBase camera)
     {
@@ -72,6 +75,23 @@ public class TcpSerialCameraViewModel : ViewModelBase, INotifyPropertyChanged
             {
                 Debug.WriteLine(e);
                 throw new DataValidationException("1-65535");
+            }
+        }
+    }
+
+    public Protocol Protocol
+    {
+        get => _camera.Protocol;
+        set
+        {
+            try
+            {
+                _camera.Protocol = value;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                throw new DataValidationException(e.Message);
             }
         }
     }
