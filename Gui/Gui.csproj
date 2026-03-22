@@ -37,5 +37,9 @@
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\SdlGamepads\SdlGamepads.csproj" />
+    <ProjectReference Include="..\KeyboardInput\KeyboardInput.csproj" />
+    <ProjectReference Include="..\MidiInput\MidiInput.csproj" />
+    <ProjectReference Include="..\OscInput\OscInput.csproj" />
+    <ProjectReference Include="..\WebInterface\WebInterface.csproj" />
   </ItemGroup>
 </Project>
