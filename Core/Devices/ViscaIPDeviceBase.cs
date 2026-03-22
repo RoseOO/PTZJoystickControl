@@ -16,7 +16,8 @@ public abstract class ViscaIPDeviceBase : ViscaDeviceBase
 
     private Timer? _reconnectTimer;
     private bool _autoReconnect = true;
-    private int _reconnectIntervalMs = 5000;
+    private const int DefaultReconnectIntervalMs = 5000;
+    private int _reconnectIntervalMs = DefaultReconnectIntervalMs;
     private volatile bool _reconnecting;
 
     public ViscaIPDeviceBase(string name) : this(name, null) { }

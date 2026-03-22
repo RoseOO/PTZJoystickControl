@@ -22,6 +22,9 @@ public partial class CameraControlView : UserControl
     private const double Center = JoystickSize / 2;
     private const double MaxRadius = (JoystickSize - ThumbSize) / 2;
 
+    private const int RampUpdateIntervalMs = 30;
+    private const float MinimumSpeedThreshold = 0.5f;
+
     // Ramping state
     private float _targetPanSpeed;
     private float _targetTiltSpeed;
@@ -119,22 +122,24 @@ public partial class CameraControlView : UserControl
         e.Pointer.Capture(null);
         ResetJoystickThumb();
 
-        if (DataContext is CameraControlViewModel vm && vm.JoystickRampingEnabled)
+        if (DataContext is CameraControlViewModel vm)
         {
-            // Set targets to zero for ramp out; timer will handle the deceleration
-            _targetPanSpeed = 0;
-            _targetTiltSpeed = 0;
-            _targetPanDir = PanDir.Stop;
-            _targetTiltDir = TiltDir.Stop;
-            StartRampTimer();
-        }
-        else
-        {
-            StopRampTimer();
-            _currentPanSpeed = 0;
-            _currentTiltSpeed = 0;
-            if (DataContext is CameraControlViewModel vm2)
-                vm2.MoveStop();
+            if (vm.JoystickRampingEnabled)
+            {
+                // Set targets to zero for ramp out; timer will handle the deceleration
+                _targetPanSpeed = 0;
+                _targetTiltSpeed = 0;
+                _targetPanDir = PanDir.Stop;
+                _targetTiltDir = TiltDir.Stop;
+                StartRampTimer();
+            }
+            else
+            {
+                StopRampTimer();
+                _currentPanSpeed = 0;
+                _currentTiltSpeed = 0;
+                vm.MoveStop();
+            }
         }
     }
 
@@ -201,7 +206,7 @@ public partial class CameraControlView : UserControl
         _rampActive = true;
         _lastRampUpdate = DateTime.UtcNow;
         _rampTimer?.Dispose();
-        _rampTimer = new Timer(RampTimerTick, null, 0, 30); // ~33Hz update rate
+        _rampTimer = new Timer(RampTimerTick, null, 0, RampUpdateIntervalMs);
     }
 
     private void StopRampTimer()
@@ -235,8 +240,8 @@ public partial class CameraControlView : UserControl
         _currentTiltSpeed = RampValue(_currentTiltSpeed, _targetTiltSpeed, tiltRampSpeed * deltaTime);
 
         // Check if ramping is complete and we've stopped
-        bool stopped = _currentPanSpeed < 0.5f && _currentTiltSpeed < 0.5f
-                       && _targetPanSpeed < 0.5f && _targetTiltSpeed < 0.5f;
+        bool stopped = _currentPanSpeed < MinimumSpeedThreshold && _currentTiltSpeed < MinimumSpeedThreshold
+                       && _targetPanSpeed < MinimumSpeedThreshold && _targetTiltSpeed < MinimumSpeedThreshold;
 
         if (stopped)
         {
