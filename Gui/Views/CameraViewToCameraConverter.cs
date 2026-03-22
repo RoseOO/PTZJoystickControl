@@ -15,6 +15,8 @@ namespace PtzJoystickControl.Gui.Views
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
+            if (value is TcpSerialCameraViewModel tcpSerialCameraViewModel)
+                return tcpSerialCameraViewModel.Camera;
             if (value is IPCameraViewModel ipCameraViewModel)
                 return ipCameraViewModel.Camera;
             if (value is SerialCameraViewModel serialCameraViewModel)

@@ -24,6 +24,9 @@
 			</ListBox.Styles>
 					
 			<ListBox.DataTemplates>
+				<DataTemplate DataType="{x:Type devices:ViscaTcpSerialDeviceBase}">
+					<v:TcpSerialCameraView DataContext="{Binding, Converter={StaticResource CameraToCameraViewConverter}}"/>
+				</DataTemplate>
 				<DataTemplate DataType="{x:Type devices:ViscaIPDeviceBase}">
 					<v:IPCameraView DataContext="{Binding, Converter={StaticResource CameraToCameraViewConverter}}"/>
 				</DataTemplate>
@@ -38,6 +41,7 @@
 		<StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="10" VerticalAlignment="Bottom">
 			<Button Content="Add IP Camera" HorizontalContentAlignment="Center" Width="100" Command="{Binding AddCamera}"/>
 			<Button Content="Add Serial Camera" HorizontalContentAlignment="Center" Width="120" Command="{Binding AddSerialCamera}"/>
+			<Button Content="Add VISCA over TCP" HorizontalContentAlignment="Center" Width="140" Command="{Binding AddTcpSerialCamera}" ToolTip.Tip="Add a VISCA RS232C camera connected via a TCP/IP UART bridge"/>
 		</StackPanel>
 	</Grid>
 </UserControl>
