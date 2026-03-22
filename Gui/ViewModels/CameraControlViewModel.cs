@@ -14,6 +14,8 @@ public class CameraControlViewModel : ViewModelBase, INotifyPropertyChanged
     private byte _tiltSpeed = 10;
     private byte _zoomSpeed = 4;
     private byte _focusSpeed = 4;
+    private bool _joystickRampingEnabled;
+    private float _joystickRampTime = 0.3f;
 
     public ViscaDeviceBase? Camera
     {
@@ -118,6 +120,18 @@ public class CameraControlViewModel : ViewModelBase, INotifyPropertyChanged
     public byte TiltSpeed { get => _tiltSpeed; set { _tiltSpeed = Math.Clamp(value, (byte)1, (byte)20); NotifyPropertyChanged(); } }
     public byte ZoomSpeed { get => _zoomSpeed; set { _zoomSpeed = Math.Clamp(value, (byte)0, (byte)7); NotifyPropertyChanged(); } }
     public byte FocusSpeed { get => _focusSpeed; set { _focusSpeed = Math.Clamp(value, (byte)0, (byte)7); NotifyPropertyChanged(); } }
+
+    public bool JoystickRampingEnabled
+    {
+        get => _joystickRampingEnabled;
+        set { _joystickRampingEnabled = value; NotifyPropertyChanged(); }
+    }
+
+    public float JoystickRampTime
+    {
+        get => _joystickRampTime;
+        set { _joystickRampTime = Math.Clamp(value, 0.05f, 2.0f); NotifyPropertyChanged(); }
+    }
 
     // PTZ Movement
     public void PanLeft() => _camera?.Pan(_panSpeed, PanDir.Left);

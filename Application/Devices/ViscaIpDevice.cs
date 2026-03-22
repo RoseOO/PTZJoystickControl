@@ -69,11 +69,13 @@ public class ViscaIpDevice : ViscaIPDeviceBase
             if (eventArgs.SocketError == SocketError.Success)
             {
                 Trace.WriteLine($"[{name}] IP Connect: TCP connected to {ViscaIpEndpont}");
+                OnConnectedSuccessfully();
                 socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnRecieve), null);
             }
             else
             {
                 Trace.WriteLine($"[{name}] IP Connect: TCP connection failed to {ViscaIpEndpont}: {eventArgs.SocketError}");
+                OnDisconnected();
             }
         }
         catch (Exception e)
@@ -125,6 +127,7 @@ public class ViscaIpDevice : ViscaIPDeviceBase
                 onComplete.Invoke(null, null!);
         }
         UdpSocket.RemoveListenerCallback(ViscaIpEndpont);
+        OnDisconnected();
     }
 
     public void ParseViscaIPReply(byte[] buffer, int length)

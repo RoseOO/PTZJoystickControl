@@ -29,8 +29,10 @@ public static class ViscaCommandParser
                 break;
             case (byte)ReplyType.Complete:
                 if (buffer[startIndex] != (byte)Terminator.Terminate)
-                    if(viscaDevice.InquiryReplyParser != null)
-                        viscaDevice.InquiryReplyParser(viscaDevice, buffer, startIndex);
+                {
+                    var replyParser = viscaDevice.InquiryReplyParser;
+                    replyParser?.Invoke(viscaDevice, buffer, startIndex);
+                }
                 viscaDevice.Acked = true;
                 viscaDevice.Completed = true;
                 viscaDevice.LastReceiveTime = DateTime.UtcNow;

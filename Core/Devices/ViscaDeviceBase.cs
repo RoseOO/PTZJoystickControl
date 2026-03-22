@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -64,7 +65,28 @@ public abstract class ViscaDeviceBase : INotifyPropertyChanged
         Name = name;
     }
     
-    protected internal Action<ViscaDeviceBase, byte[], int>? InquiryReplyParser { get; set; }
+    private readonly Queue<Action<ViscaDeviceBase, byte[], int>> _inquiryReplyParserQueue = new();
+
+    protected internal Action<ViscaDeviceBase, byte[], int>? InquiryReplyParser
+    {
+        get
+        {
+            lock (_inquiryReplyParserQueue)
+            {
+                return _inquiryReplyParserQueue.TryDequeue(out var parser) ? parser : null;
+            }
+        }
+        set
+        {
+            if (value != null)
+            {
+                lock (_inquiryReplyParserQueue)
+                {
+                    _inquiryReplyParserQueue.Enqueue(value);
+                }
+            }
+        }
+    }
     protected internal bool Acked { get; internal set; }
     protected internal bool Completed { get; internal set; }
 
