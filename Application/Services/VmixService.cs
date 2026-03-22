@@ -13,6 +13,7 @@ public class VmixService : IVmixService, IDisposable
     private VmixSettings _settings;
     private Timer? _pollTimer;
     private int _lastPreviewInput;
+    private volatile bool _polling;
 
     public VmixService()
     {
@@ -87,14 +88,20 @@ public class VmixService : IVmixService, IDisposable
         await SendFunctionAsync($"PreviewInput&Input={inputNumber}");
     }
 
-    public async Task SendCutAsync()
+    public async Task SendCutAsync(int? mix = null)
     {
-        await SendFunctionAsync("Cut");
+        var function = "Cut";
+        if (mix.HasValue)
+            function += $"&Mix={mix.Value}";
+        await SendFunctionAsync(function);
     }
 
-    public async Task SendFadeAsync(int duration)
+    public async Task SendFadeAsync(int duration, int? mix = null)
     {
-        await SendFunctionAsync($"Fade&Duration={duration}");
+        var function = $"Fade&Duration={duration}";
+        if (mix.HasValue)
+            function += $"&Mix={mix.Value}";
+        await SendFunctionAsync(function);
     }
 
     private async Task SendFunctionAsync(string function)
@@ -165,7 +172,7 @@ public class VmixService : IVmixService, IDisposable
     private void StartPolling()
     {
         _pollTimer?.Dispose();
-        _pollTimer = new Timer(PollPreviewInput, null, 500, 1000);
+        _pollTimer = new Timer(PollPreviewInput, null, 100, 100);
     }
 
     private void StopPolling()
@@ -178,6 +185,10 @@ public class VmixService : IVmixService, IDisposable
     {
         if (_httpClient == null || !IsConnected || !AutoCameraSelect)
             return;
+
+        if (_polling)
+            return;
+        _polling = true;
 
         try
         {
@@ -200,6 +211,10 @@ public class VmixService : IVmixService, IDisposable
         catch (Exception e)
         {
             Debug.WriteLine($"vMix poll error: {e.Message}");
+        }
+        finally
+        {
+            _polling = false;
         }
     }
 

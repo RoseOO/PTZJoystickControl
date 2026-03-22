@@ -21,12 +21,17 @@ public class VmixCutCommand : IStaticCommand
     public override string ButtonParameterName => "Action";
 
     public override IEnumerable<CommandValueOption> Options => optionsList;
+    // Value encoding: lower 16 bits unused, upper 16 bits = mix number (0 = default/no mix)
     private static readonly IEnumerable<CommandValueOption> optionsList = new CommandValueOption[] {
-        new CommandValueOption("Cut", 1),
+        new CommandValueOption("Cut", 0),
+        new CommandValueOption("Cut (Mix 2)", 2),
+        new CommandValueOption("Cut (Mix 3)", 3),
+        new CommandValueOption("Cut (Mix 4)", 4),
     };
 
     public override void Execute(int value)
     {
-        _ = _vmixService.SendCutAsync();
+        int? mix = value > 0 ? value : null;
+        _ = _vmixService.SendCutAsync(mix);
     }
 }
