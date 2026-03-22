@@ -12,21 +12,36 @@ namespace PtzJoystickControl.Gui.ViewModels;
 public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
 {
     private readonly IGamepadsService _gamepadsService;
+    private readonly ICamerasService? _camerasService;
     private IGamepadInfo? _selectedGamepadInfo;
     private IGamepad? _selectedGamepad;
     private IEnumerable<InputViewModel>? _inputViewModels = Enumerable.Empty<InputViewModel>();
 
     public MappingProfileViewModel? MappingProfileViewModel { get; }
 
-    public GamepadsViewModel(IGamepadsService gamepadsService, IMappingProfileStore? mappingProfileStore = null)
+    public GamepadsViewModel(IGamepadsService gamepadsService, IMappingProfileStore? mappingProfileStore = null, ICamerasService? camerasService = null)
     {
         _gamepadsService = gamepadsService;
+        _camerasService = camerasService;
         if (mappingProfileStore != null)
             MappingProfileViewModel = new MappingProfileViewModel(mappingProfileStore, this);
-        SelectedGamepadInfo = _gamepadsService.Gamepads.FirstOrDefault(g => g.IsActivated);
+
+        // Auto-activate all devices that were previously activated
+        foreach (var gp in _gamepadsService.Gamepads.Where(g => g.IsActivated).ToList())
+            _gamepadsService.ActivateGamepad(gp);
+
+        // Select the first activated device for viewing/configuring
+        SelectedGamepadInfo = _gamepadsService.Gamepads.FirstOrDefault(g => g.IsActivated)
+            ?? _gamepadsService.Gamepads.FirstOrDefault();
     }
 
     public ObservableCollection<IGamepadInfo> AvailableGamepads => _gamepadsService.Gamepads;
+
+    /// <summary>
+    /// The currently selected device for viewing/configuring.
+    /// Selecting a device does NOT change its activation state.
+    /// Use ToggleSelectedDeviceActive to activate/deactivate.
+    /// </summary>
     public IGamepadInfo? SelectedGamepadInfo
     {
         get => _selectedGamepadInfo;
@@ -35,22 +50,43 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
             if (_selectedGamepadInfo != value)
             {
                 if (_selectedGamepadInfo != null)
-                {
-                    _gamepadsService.DeactivateGamepad(_selectedGamepadInfo);
                     _selectedGamepadInfo.PropertyChanged -= OnSelecetdGamepadInfoPropertyChanged;
-                }
 
                 _selectedGamepadInfo = value;
 
                 if (_selectedGamepadInfo != null)
-                {
-                    _gamepadsService.ActivateGamepad(_selectedGamepadInfo);
                     _selectedGamepadInfo.PropertyChanged += OnSelecetdGamepadInfoPropertyChanged;
-                }
 
+                // Look up the active gamepad instance if this device is activated
                 SelectedGamepad = _gamepadsService.ActiveGamepads.FirstOrDefault(g => g.Id == _selectedGamepadInfo?.Id);
                 NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(IsSelectedDeviceActive));
             }
+        }
+    }
+
+    /// <summary>
+    /// Whether the currently selected device is active (activated).
+    /// Setting this activates/deactivates the selected device.
+    /// Multiple devices can be active simultaneously.
+    /// </summary>
+    public bool IsSelectedDeviceActive
+    {
+        get => _selectedGamepadInfo?.IsActivated ?? false;
+        set
+        {
+            if (_selectedGamepadInfo == null) return;
+            if (value)
+            {
+                _gamepadsService.ActivateGamepad(_selectedGamepadInfo);
+                SelectedGamepad = _gamepadsService.ActiveGamepads.FirstOrDefault(g => g.Id == _selectedGamepadInfo.Id);
+            }
+            else
+            {
+                _gamepadsService.DeactivateGamepad(_selectedGamepadInfo);
+                SelectedGamepad = null;
+            }
+            NotifyPropertyChanged();
         }
     }
 
@@ -73,6 +109,7 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
                 NotifyPropertyChanged();
                 NotifyPropertyChanged(nameof(ZoomProportionalMode));
                 NotifyPropertyChanged(nameof(ZoomProportionalFactor));
+                NotifyPropertyChanged(nameof(DeviceSelectedCamera));
             }
         }
     }
@@ -89,6 +126,28 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
         set { if (_selectedGamepad != null) { _selectedGamepad.ZoomProportionalFactor = value; NotifyPropertyChanged(); } }
     }
 
+    /// <summary>
+    /// All available cameras for per-device camera assignment.
+    /// </summary>
+    public ObservableCollection<ViscaDeviceBase>? AvailableCameras => _camerasService?.Cameras;
+
+    /// <summary>
+    /// The camera assigned to the selected device.
+    /// Allows per-device camera targeting. Null means "use selected camera from main camera list".
+    /// </summary>
+    public ViscaDeviceBase? DeviceSelectedCamera
+    {
+        get => _selectedGamepad?.SelectedCamera;
+        set
+        {
+            if (_selectedGamepad != null)
+            {
+                _selectedGamepad.SelectedCamera = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
+
     private void OnSelecetdGamepadPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IGamepad.IsConnected) && !SelectedGamepad!.IsConnected)
@@ -103,11 +162,12 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
 
     public void OnSelecetdGamepadInfoPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(IGamepadInfo.IsActivated)
-            && SelectedGamepad == null
-            && SelectedGamepadInfo!.IsActivated
-            && SelectedGamepadInfo!.IsConnected)
-            SelectedGamepad = _gamepadsService.ActiveGamepads.FirstOrDefault(g => g.Id == _selectedGamepadInfo?.Id);
+        if (e.PropertyName == nameof(IGamepadInfo.IsActivated))
+        {
+            NotifyPropertyChanged(nameof(IsSelectedDeviceActive));
+            if (SelectedGamepad == null && SelectedGamepadInfo!.IsActivated && SelectedGamepadInfo!.IsConnected)
+                SelectedGamepad = _gamepadsService.ActiveGamepads.FirstOrDefault(g => g.Id == _selectedGamepadInfo?.Id);
+        }
 
         NotifyPropertyChanged(e.PropertyName ?? "");
     }
