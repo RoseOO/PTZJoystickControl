@@ -69,6 +69,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             if (eventArgs.SocketError == SocketError.Success)
             {
                 Trace.WriteLine($"[{name}] VISCA/TCP Connect: Connected to {ViscaIpEndpont}");
+                OnConnectedSuccessfully();
                 _receiveAccumulatorIndex = 0;
                 socket!.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
 
@@ -81,6 +82,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             else
             {
                 Trace.WriteLine($"[{name}] VISCA/TCP Connect: Failed to {ViscaIpEndpont}: {eventArgs.SocketError}");
+                OnDisconnected();
             }
         }
         catch (Exception e)
@@ -174,6 +176,7 @@ public class ViscaTcpSerialDevice : ViscaTcpSerialDeviceBase
             socket = null;
             NotifyPropertyChanged(nameof(Connected));
         }
+        OnDisconnected();
     }
 
     // Send Address Set command: 88 30 01 FF
