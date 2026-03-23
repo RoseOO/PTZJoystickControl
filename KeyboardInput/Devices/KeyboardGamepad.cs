@@ -11,18 +11,18 @@ namespace PtzJoystickControl.KeyboardInput.Devices;
 
 public class KeyboardGamepad : IGamepad
 {
-    private static readonly string[] AxisNames = new[] {
-        "Horizontal Axis (A/D)",
-        "Vertical Axis (W/S)",
-        "Zoom Axis (R/F)",
-        "Focus Axis (T/G)",
-    };
-
     private static readonly string[] ButtonNames = new[] {
+        "Key W", "Key A", "Key S", "Key D",
+        "Key R", "Key F", "Key T", "Key G",
+        "Key Q", "Key E", "Key Z", "Key X", "Key C", "Key V",
         "Key 1", "Key 2", "Key 3", "Key 4", "Key 5",
         "Key 6", "Key 7", "Key 8", "Key 9", "Key 0",
-        "Key Q", "Key E", "Key Z", "Key X", "Key C",
-        "Key V", "Key Space", "Key Enter",
+        "Key Space", "Key Enter",
+        "Key Up", "Key Down", "Key Left", "Key Right",
+        "Key Escape", "Key Tab",
+        "Key F1", "Key F2", "Key F3", "Key F4", "Key F5",
+        "Key F6", "Key F7", "Key F8", "Key F9", "Key F10",
+        "Key F11", "Key F12",
     };
 
     private readonly List<ICommand> _commands;
@@ -120,15 +120,7 @@ public class KeyboardGamepad : IGamepad
 
         _commands = commandsService.GetCommandsForGamepad(this).ToList();
 
-        // Create axis inputs
-        foreach (var name in AxisNames)
-        {
-            IInput input = new Input(name, name, InputType.Axis, _commands.AsReadOnly());
-            input.PersistentPropertyChanged += (s, e) => NotifyPersistentPropertyChanged("");
-            _inputs.Add(name, input);
-        }
-
-        // Create button inputs
+        // Create button inputs only (keyboards don't have analog axes)
         foreach (var name in ButtonNames)
         {
             IInput input = new Input(name, name, InputType.Button, _commands.AsReadOnly());
