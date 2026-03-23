@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
 	<Title>PTZ Joystick Control</Title>
 	<AssemblyTitle>PTZ Joystick Control</AssemblyTitle>
-	<AssemblyName>Gui</AssemblyName>
+	<AssemblyName>PTZJoyControl</AssemblyName>
 	<ApplicationIcon>./Assets/icon.ico</ApplicationIcon>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>

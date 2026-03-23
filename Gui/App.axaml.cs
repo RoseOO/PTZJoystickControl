@@ -10,6 +10,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using PtzJoystickControl.Core.Db;
 using PtzJoystickControl.Core.Services;
 using PtzJoystickControl.KeyboardInput.Services;
 using PtzJoystickControl.WebInterface.Services;
@@ -59,7 +60,10 @@ namespace PtzJoystickControl.Gui
                         camerasViewModel,
                         Locator.Current.GetServiceOrThrow<CameraControlViewModel>(),
                         Locator.Current.GetServiceOrThrow<VmixViewModel>(),
-                        mainWindow);
+                        mainWindow,
+                        Locator.Current.GetServiceOrThrow<ICameraSettingsStore>(),
+                        Locator.Current.GetServiceOrThrow<IGamepadSettingsStore>(),
+                        Locator.Current.GetServiceOrThrow<IVmixService>());
 
                     camerasViewModel.PropertyChanged += (object? s, PropertyChangedEventArgs e) =>
                     {

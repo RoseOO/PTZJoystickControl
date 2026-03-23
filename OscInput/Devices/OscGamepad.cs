@@ -21,14 +21,21 @@ public class OscGamepad : IGamepad
     private bool _zoomProportionalMode;
     private float _zoomProportionalFactor = 0.5F;
 
-    // OSC axes: /pan, /tilt, /zoom, /focus + 4 user-defined faders
+    // OSC axes: /pan, /tilt, /zoom, /focus + 32 user-defined faders
     private static readonly string[] AxisNames = new[] {
         "/pan", "/tilt", "/zoom", "/focus",
         "/fader1", "/fader2", "/fader3", "/fader4",
+        "/fader5", "/fader6", "/fader7", "/fader8",
+        "/fader9", "/fader10", "/fader11", "/fader12",
+        "/fader13", "/fader14", "/fader15", "/fader16",
+        "/fader17", "/fader18", "/fader19", "/fader20",
+        "/fader21", "/fader22", "/fader23", "/fader24",
+        "/fader25", "/fader26", "/fader27", "/fader28",
+        "/fader29", "/fader30", "/fader31", "/fader32",
     };
 
-    // OSC buttons: /button/1 through /button/16
-    private const int NumButtons = 16;
+    // OSC buttons: /button/1 through /button/64
+    private const int NumButtons = 64;
 
     public string Id { get; }
     public string Name { get; }

@@ -1,11 +1,20 @@
+using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using PtzJoystickControl.Application.Services;
+using PtzJoystickControl.Core.Db;
 using PtzJoystickControl.Core.Devices;
+using PtzJoystickControl.Core.Model;
 using PtzJoystickControl.Core.Services;
 using PtzJoystickControl.Gui.Views;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace PtzJoystickControl.Gui.ViewModels;
 
@@ -15,6 +24,10 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     private readonly CameraOverlayViewModel _overlayViewModel;
     private LogWindow? _logWindow;
     private readonly LogWindowViewModel _logWindowViewModel;
+    private readonly Window _window;
+    private readonly ICameraSettingsStore _cameraSettingsStore;
+    private readonly IGamepadSettingsStore _gamepadSettingsStore;
+    private readonly IVmixService _vmixService;
 
     private bool _showInputPane = true;
     private bool _showCamerasPane = true;
@@ -35,12 +48,19 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         CamerasViewModel camerasViewModel,
         CameraControlViewModel cameraControlViewModel,
         VmixViewModel vmixViewModel,
-        MainWindow window)
+        MainWindow window,
+        ICameraSettingsStore cameraSettingsStore,
+        IGamepadSettingsStore gamepadSettingsStore,
+        IVmixService vmixService)
     {
         GamepadsViewModel = gamepadsViewModel;
         CamerasViewModel = camerasViewModel;
         CameraControlViewModel = cameraControlViewModel;
         VmixViewModel = vmixViewModel;
+        _window = window;
+        _cameraSettingsStore = cameraSettingsStore;
+        _gamepadSettingsStore = gamepadSettingsStore;
+        _vmixService = vmixService;
         AcrylicEnabled = window?.ActualTransparencyLevel == Avalonia.Controls.WindowTransparencyLevel.AcrylicBlur
             || window?.ActualTransparencyLevel == Avalonia.Controls.WindowTransparencyLevel.Blur;
 
@@ -188,6 +208,103 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
             _logWindow.Closed += (s, e) => _logWindow = null;
             _logWindow.Show();
         }
+    }
+
+    public async void ExportConfig()
+    {
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                DefaultExtension = "json",
+                InitialFileName = "PTZJoyControl_Config.json",
+            };
+            dialog.Filters!.Add(new FileDialogFilter { Name = "JSON Files", Extensions = { "json" } });
+
+            var path = await dialog.ShowAsync(_window);
+            if (string.IsNullOrEmpty(path)) return;
+
+            var cameras = _cameraSettingsStore.GetAllCameras()
+                .Select(c => new ViscaDeviceSettings(c)).ToList();
+
+            var vmixSettings = new VmixSettings();
+            if (_vmixService is VmixService svc)
+            {
+                vmixSettings.Host = svc.Host;
+                vmixSettings.Port = svc.Port;
+                vmixSettings.AutoPreview = svc.AutoPreview;
+                vmixSettings.AutoCameraSelect = svc.AutoCameraSelect;
+                vmixSettings.Enabled = svc.IsConnected;
+            }
+
+            var export = new FullConfigExport
+            {
+                Cameras = cameras,
+                VmixSettings = vmixSettings,
+                GamepadSettings = _gamepadSettingsStore.GetAllGamepadSettings(),
+                ExportedAt = DateTime.UtcNow.ToString("o"),
+                Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(),
+            };
+
+            var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(path, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Export error: {ex.Message}");
+        }
+    }
+
+    public async void ImportConfig()
+    {
+        try
+        {
+            var dialog = new OpenFileDialog
+            {
+                AllowMultiple = false,
+            };
+            dialog.Filters!.Add(new FileDialogFilter { Name = "JSON Files", Extensions = { "json" } });
+
+            var result = await dialog.ShowAsync(_window);
+            if (result == null || result.Length == 0) return;
+
+            var json = File.ReadAllText(result[0]);
+            var config = JsonSerializer.Deserialize<FullConfigExport>(json);
+            if (config == null) return;
+
+            // Write config files directly
+            string configDir = GetConfigDir();
+            Directory.CreateDirectory(configDir);
+
+            if (config.Cameras != null)
+            {
+                var camerasJson = JsonSerializer.Serialize(config.Cameras);
+                File.WriteAllText(Path.Combine(configDir, "Cameras.json"), camerasJson);
+            }
+
+            if (config.VmixSettings != null)
+            {
+                var vmixJson = JsonSerializer.Serialize(config.VmixSettings);
+                File.WriteAllText(Path.Combine(configDir, "VmixSettings.json"), vmixJson);
+            }
+
+            if (config.GamepadSettings != null)
+            {
+                var gamepadsJson = JsonSerializer.Serialize(config.GamepadSettings);
+                File.WriteAllText(Path.Combine(configDir, "Gamepads.json"), gamepadsJson);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Import error: {ex.Message}");
+        }
+    }
+
+    private static string GetConfigDir()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".PTZJoystickControl/");
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/");
     }
 
     public new event PropertyChangedEventHandler? PropertyChanged;

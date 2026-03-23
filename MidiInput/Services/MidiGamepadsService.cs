@@ -252,11 +252,14 @@ public class MidiGamepadsService : IGamepadsService
         gamepad.ZoomProportionalFactor = settings.ZoomProportionalFactor;
 
         var commandsDict = gamepad.Commands.ToDictionary(val => val.GetType().ToString());
-        foreach (IInput input in gamepad.Inputs)
+        if (settings.Inputs != null)
         {
-            InputSettings? storedInput = settings.Inputs?.FirstOrDefault(i => i.Id == input.Id);
-            if (storedInput != null)
+            foreach (var storedInput in settings.Inputs)
             {
+                // Determine input type from the name pattern
+                var inputType = storedInput.Id.StartsWith("CC ") ? InputType.Axis : InputType.Button;
+                var input = gamepad.GetOrCreateInput(storedInput.Id, inputType);
+
                 if (storedInput.CommandType != null && commandsDict.TryGetValue(storedInput.CommandType, out var command))
                     input.SelectedCommand = command;
                 input.CommandDirection = storedInput.CommandDirection;
