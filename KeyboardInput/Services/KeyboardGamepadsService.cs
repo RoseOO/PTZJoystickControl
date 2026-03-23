@@ -18,43 +18,30 @@ public class KeyboardGamepadsService : IGamepadsService
     public ObservableCollection<IGamepadInfo> Gamepads { get; } = new();
     public ObservableCollection<IGamepad> ActiveGamepads { get; } = new();
 
-    // Keyboard key-to-input mapping
-    private static readonly Dictionary<string, string> KeyToAxisMap = new()
-    {
-        { "D", "Horizontal Axis (A/D)" },    // Right on horizontal axis
-        { "A", "Horizontal Axis (A/D)" },    // Left on horizontal axis
-        { "W", "Vertical Axis (W/S)" },      // Up on vertical axis
-        { "S", "Vertical Axis (W/S)" },      // Down on vertical axis
-        { "R", "Zoom Axis (R/F)" },          // Zoom in
-        { "F", "Zoom Axis (R/F)" },          // Zoom out
-        { "T", "Focus Axis (T/G)" },         // Focus far
-        { "G", "Focus Axis (T/G)" },         // Focus near
-    };
-
-    private static readonly Dictionary<string, float> KeyToAxisValue = new()
-    {
-        { "D", 1f },   // Right
-        { "A", -1f },  // Left
-        { "W", -1f },  // Up (inverted Y)
-        { "S", 1f },   // Down
-        { "R", 1f },   // Zoom in
-        { "F", -1f },  // Zoom out
-        { "T", 1f },   // Focus far
-        { "G", -1f },  // Focus near
-    };
-
-    // Track which axis-keys are currently held
-    private readonly HashSet<string> _heldAxisKeys = new();
-
+    // All keyboard keys mapped to button input names
     private static readonly Dictionary<string, string> KeyToButtonMap = new()
     {
+        // Letter keys
+        { "W", "Key W" }, { "A", "Key A" }, { "S", "Key S" }, { "D", "Key D" },
+        { "R", "Key R" }, { "F", "Key F" }, { "T", "Key T" }, { "G", "Key G" },
+        { "Q", "Key Q" }, { "E", "Key E" },
+        { "Z", "Key Z" }, { "X", "Key X" }, { "C", "Key C" }, { "V", "Key V" },
+        // Number keys
         { "D1", "Key 1" }, { "D2", "Key 2" }, { "D3", "Key 3" },
         { "D4", "Key 4" }, { "D5", "Key 5" }, { "D6", "Key 6" },
         { "D7", "Key 7" }, { "D8", "Key 8" }, { "D9", "Key 9" },
         { "D0", "Key 0" },
-        { "Q", "Key Q" }, { "E", "Key E" },
-        { "Z", "Key Z" }, { "X", "Key X" }, { "C", "Key C" },
-        { "V", "Key V" }, { "Space", "Key Space" }, { "Return", "Key Enter" },
+        // Special keys
+        { "Space", "Key Space" }, { "Return", "Key Enter" },
+        // Arrow keys
+        { "Up", "Key Up" }, { "Down", "Key Down" },
+        { "Left", "Key Left" }, { "Right", "Key Right" },
+        // Function keys
+        { "Escape", "Key Escape" }, { "Tab", "Key Tab" },
+        { "F1", "Key F1" }, { "F2", "Key F2" }, { "F3", "Key F3" },
+        { "F4", "Key F4" }, { "F5", "Key F5" }, { "F6", "Key F6" },
+        { "F7", "Key F7" }, { "F8", "Key F8" }, { "F9", "Key F9" },
+        { "F10", "Key F10" }, { "F11", "Key F11" }, { "F12", "Key F12" },
     };
 
     public KeyboardGamepadsService(IGamepadSettingsStore gamepadSettingsStore, ICamerasService camerasService, ICommandsService commandsService)
@@ -114,15 +101,6 @@ public class KeyboardGamepadsService : IGamepadsService
         var gamepad = ActiveGamepads.FirstOrDefault() as KeyboardGamepad;
         if (gamepad == null) return false;
 
-        // Axis keys
-        if (KeyToAxisMap.TryGetValue(keyName, out var axisName) && KeyToAxisValue.TryGetValue(keyName, out var value))
-        {
-            _heldAxisKeys.Add(keyName);
-            gamepad.SetInputValue(axisName, value);
-            return true;
-        }
-
-        // Button keys
         if (KeyToButtonMap.TryGetValue(keyName, out var buttonName))
         {
             gamepad.SetInputValue(buttonName, 1f);
@@ -140,18 +118,6 @@ public class KeyboardGamepadsService : IGamepadsService
         var gamepad = ActiveGamepads.FirstOrDefault() as KeyboardGamepad;
         if (gamepad == null) return false;
 
-        // Axis keys - reset to 0 on release, unless the opposite key is still held
-        if (KeyToAxisMap.TryGetValue(keyName, out var axisName))
-        {
-            _heldAxisKeys.Remove(keyName);
-
-            // Check if the opposite direction key is still held
-            var oppositeValue = GetOppositeHeldAxisValue(axisName);
-            gamepad.SetInputValue(axisName, oppositeValue);
-            return true;
-        }
-
-        // Button keys
         if (KeyToButtonMap.TryGetValue(keyName, out var buttonName))
         {
             gamepad.SetInputValue(buttonName, 0f);
@@ -159,19 +125,6 @@ public class KeyboardGamepadsService : IGamepadsService
         }
 
         return false;
-    }
-
-    private float GetOppositeHeldAxisValue(string axisName)
-    {
-        foreach (var heldKey in _heldAxisKeys)
-        {
-            if (KeyToAxisMap.TryGetValue(heldKey, out var mappedAxis) && mappedAxis == axisName)
-            {
-                if (KeyToAxisValue.TryGetValue(heldKey, out var value))
-                    return value;
-            }
-        }
-        return 0f;
     }
 
     private KeyboardGamepad LoadGamepad(KeyboardGamepadInfo gamepadInfo)

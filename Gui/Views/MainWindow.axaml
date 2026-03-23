@@ -11,47 +11,83 @@
 		Background="Transparent"
 		Width="1400"
 		Height="650"
-		MinWidth="1200"
-		MinHeight="550"
+		MinWidth="700"
+		MinHeight="450"
 		Title="PTZ Joystick Control"
 		Icon="/Assets/icon.ico">
 
-	<Grid RowDefinitions="Auto,*">
+	<Grid RowDefinitions="Auto,Auto,*">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="4*" MinWidth="450"/>
-			<ColumnDefinition Width="3*" MinWidth="360"/>
+			<ColumnDefinition Width="4*" MinWidth="200"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="3*" MinWidth="200"/>
+			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
-		
-		<ExperimentalAcrylicBorder IsVisible="{Binding AcrylicEnabled}" IsHitTestVisible="False" Grid.ColumnSpan="3" Grid.RowSpan="2">
+
+		<ExperimentalAcrylicBorder IsVisible="{Binding AcrylicEnabled}" IsHitTestVisible="False" Grid.ColumnSpan="5" Grid.RowSpan="3">
 			<ExperimentalAcrylicBorder.Material>
 				<ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="black" TintOpacity="0.75" MaterialOpacity=".65" />
 			</ExperimentalAcrylicBorder.Material>
 		</ExperimentalAcrylicBorder>
-		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#3a3a3a" IsHitTestVisible="False" Grid.ColumnSpan="3" Grid.RowSpan="2"/>
-		
-		<StackPanel IsVisible="{Binding IsExtendedIntoWindowDecorations, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Height="30" Grid.Row="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="{Binding TitleHorizontalAlignment}">
+		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#DD2a2a2a" IsHitTestVisible="False" Grid.ColumnSpan="5" Grid.RowSpan="3"/>
+
+		<!-- Title bar -->
+		<StackPanel IsVisible="{Binding IsExtendedIntoWindowDecorations, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Height="30" Grid.Row="0" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="{Binding TitleHorizontalAlignment}">
 			<Image Source="/Assets/icon.ico" Height="22" HorizontalAlignment="Left" Margin="4"/>
 			<TextBlock Text="PTZ Joystick Control" VerticalAlignment="Center"/>
 		</StackPanel>
-		
-		<v:GamepadsView Grid.Column="0" Grid.Row="1" DataContext="{Binding GamepadsViewModel}"/>
-		<GridSplitter Grid.Column="0" Grid.Row="1" Width="6" HorizontalAlignment="Right" Margin="0,10,-3,10"/>
 
-		<Grid Grid.Column="1" Grid.Row="1" RowDefinitions="*,Auto">
+		<!-- Status / toolbar bar -->
+		<Border Grid.Row="1" Grid.ColumnSpan="5" Background="#2000" Padding="6,3" Margin="0,0,0,2">
+			<Grid ColumnDefinitions="Auto,12,Auto,12,Auto,*,Auto,8,Auto,8,Auto,8,Auto">
+				<!-- Camera status -->
+				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+					<TextBlock Text="Camera:" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding CurrentCameraName}" FontSize="11" VerticalAlignment="Center" Foreground="#aaa"/>
+					<Ellipse Width="8" Height="8" VerticalAlignment="Center">
+						<Ellipse.Fill>
+							<SolidColorBrush Color="{Binding CameraStatusColor}"/>
+						</Ellipse.Fill>
+					</Ellipse>
+				</StackPanel>
+
+				<!-- vMix status -->
+				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+					<TextBlock Text="vMix:" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding VmixStatusText}" FontSize="11" VerticalAlignment="Center" Foreground="#aaa"/>
+				</StackPanel>
+
+				<!-- Mapping profiles (moved here) -->
+				<v:MappingProfileView Grid.Column="4" DataContext="{Binding GamepadsViewModel.MappingProfileViewModel}" VerticalAlignment="Center"/>
+
+				<!-- Pane toggle buttons -->
+				<ToggleButton Grid.Column="6" Content="Input Devices" IsChecked="{Binding ShowInputPane}" FontSize="11" Padding="6,2" VerticalAlignment="Center"/>
+				<ToggleButton Grid.Column="8" Content="Cameras" IsChecked="{Binding ShowCamerasPane}" FontSize="11" Padding="6,2" VerticalAlignment="Center"/>
+				<ToggleButton Grid.Column="10" Content="Controls" IsChecked="{Binding ShowControlsPane}" FontSize="11" Padding="6,2" VerticalAlignment="Center"/>
+
+				<!-- Utility buttons -->
+				<StackPanel Grid.Column="12" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+					<Button Content="Overlay" Command="{Binding ToggleOverlay}" FontSize="10" Padding="6,2" VerticalAlignment="Center"/>
+					<Button Content="Log" Command="{Binding ToggleDebugLog}" FontSize="10" Padding="6,2" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+
+		<!-- Pane 1: Input Devices (collapsible) -->
+		<v:GamepadsView Grid.Column="0" Grid.Row="2" DataContext="{Binding GamepadsViewModel}" IsVisible="{Binding ShowInputPane}"/>
+		<GridSplitter Grid.Column="1" Grid.Row="2" Width="6" IsVisible="{Binding ShowInputPane}" HorizontalAlignment="Center" Margin="0,10,0,10"/>
+
+		<!-- Pane 2: Cameras + vMix (collapsible) -->
+		<Grid Grid.Column="2" Grid.Row="2" RowDefinitions="*,Auto" IsVisible="{Binding ShowCamerasPane}">
 			<v:CamerasView Grid.Row="0" DataContext="{Binding CamerasViewModel}"/>
 			<v:VmixSettingsView Grid.Row="1" DataContext="{Binding VmixViewModel}"/>
 		</Grid>
+		<GridSplitter Grid.Column="3" Grid.Row="2" Width="6" IsVisible="{Binding ShowCamerasPane}" HorizontalAlignment="Center" Margin="0,10,0,10"/>
 
-		<GridSplitter Grid.Column="1" Grid.Row="1" Width="6" HorizontalAlignment="Right" Margin="0,10,-3,10"/>
-		
-		<Grid Grid.Column="2" Grid.Row="1" RowDefinitions="Auto,*" MinWidth="380">
-			<StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4" Spacing="6">
-				<TextBlock Text="Camera Controls" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
-				<Button Content="Overlay" Command="{Binding ToggleOverlay}" FontSize="11" Padding="8,2" VerticalAlignment="Center"/>
-				<Button Content="Debug Log" Command="{Binding ToggleDebugLog}" FontSize="11" Padding="8,2" VerticalAlignment="Center"/>
-			</StackPanel>
-			<v:CameraControlView Grid.Row="1" DataContext="{Binding CameraControlViewModel}"/>
+		<!-- Pane 3: Camera Controls (collapsible) -->
+		<Grid Grid.Column="4" Grid.Row="2" RowDefinitions="*" MinWidth="380" IsVisible="{Binding ShowControlsPane}">
+			<v:CameraControlView Grid.Row="0" DataContext="{Binding CameraControlViewModel}"/>
 		</Grid>
 	</Grid>
 
