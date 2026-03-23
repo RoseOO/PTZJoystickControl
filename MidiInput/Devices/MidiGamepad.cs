@@ -132,7 +132,7 @@ public class MidiGamepad : IGamepad
     /// </summary>
     internal void OnControlChange(int ccNumber, int value)
     {
-        var name = $"CC {ccNumber}";
+        var name = $"CC {ccNumber + 1}";
         var input = GetOrCreateInput(name, InputType.Axis);
         float normalized = (value / MidiCcMidpoint) - 1f;
         input.InputValue = Math.Clamp(normalized, -1f, 1f);

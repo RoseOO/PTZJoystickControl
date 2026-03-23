@@ -273,12 +273,7 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
             if (config == null) return;
 
             // Write config files directly
-            string configDir;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".PTZJoystickControl/");
-            else
-                configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/");
-
+            string configDir = GetConfigDir();
             Directory.CreateDirectory(configDir);
 
             if (config.Cameras != null)
@@ -303,6 +298,13 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         {
             System.Diagnostics.Debug.WriteLine($"Import error: {ex.Message}");
         }
+    }
+
+    private static string GetConfigDir()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".PTZJoystickControl/");
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PTZJoystickControl/");
     }
 
     public new event PropertyChangedEventHandler? PropertyChanged;
