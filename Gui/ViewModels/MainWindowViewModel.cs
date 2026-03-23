@@ -22,6 +22,8 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     private string _currentCameraName = "None";
     private Color _cameraStatusColor = Colors.Gray;
     private string _vmixStatusText = "Disconnected";
+    private ViscaDeviceBase? _currentCamera;
+    private PropertyChangedEventHandler? _cameraPropertyHandler;
 
     public GamepadsViewModel GamepadsViewModel { get; }
     public CamerasViewModel CamerasViewModel { get; }
@@ -122,24 +124,34 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
 
     private void UpdateCameraStatus(ViscaDeviceBase? camera)
     {
+        // Unsubscribe from previous camera
+        if (_currentCamera != null && _cameraPropertyHandler != null)
+        {
+            _currentCamera.PropertyChanged -= _cameraPropertyHandler;
+        }
+
+        _currentCamera = camera;
+
         if (camera == null)
         {
             CurrentCameraName = "None";
             CameraStatusColor = Colors.Gray;
+            _cameraPropertyHandler = null;
             return;
         }
 
         CurrentCameraName = camera.Name ?? "Unnamed";
-        CameraStatusColor = camera.Connected ? Color.Parse("#4caf50") : Color.Parse("#f44336");
+        CameraStatusColor = camera.Connected ? Color.Parse("#4CAF50") : Color.Parse("#F44336");
 
         // Subscribe to camera property changes for live status updates
-        camera.PropertyChanged += (s, e) =>
+        _cameraPropertyHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(ViscaDeviceBase.Connected))
-                CameraStatusColor = camera.Connected ? Color.Parse("#4caf50") : Color.Parse("#f44336");
+                CameraStatusColor = camera.Connected ? Color.Parse("#4CAF50") : Color.Parse("#F44336");
             if (e.PropertyName == nameof(ViscaDeviceBase.Name))
                 CurrentCameraName = camera.Name ?? "Unnamed";
         };
+        camera.PropertyChanged += _cameraPropertyHandler;
     }
 
     public void ToggleOverlay()

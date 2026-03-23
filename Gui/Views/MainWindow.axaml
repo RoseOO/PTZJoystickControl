@@ -30,7 +30,7 @@
 				<ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="black" TintOpacity="0.75" MaterialOpacity=".65" />
 			</ExperimentalAcrylicBorder.Material>
 		</ExperimentalAcrylicBorder>
-		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#DD2a2a2a" IsHitTestVisible="False" Grid.ColumnSpan="5" Grid.RowSpan="3"/>
+		<Border IsVisible="{Binding !AcrylicEnabled}" Background="#DD2A2A2A" IsHitTestVisible="False" Grid.ColumnSpan="5" Grid.RowSpan="3"/>
 
 		<!-- Title bar -->
 		<StackPanel IsVisible="{Binding IsExtendedIntoWindowDecorations, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Height="30" Grid.Row="0" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="{Binding TitleHorizontalAlignment}">
