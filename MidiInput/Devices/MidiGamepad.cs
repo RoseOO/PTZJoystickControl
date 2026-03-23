@@ -25,10 +25,6 @@ public class MidiGamepad : IGamepad
     public string Name { get; }
     public bool DetectInput { get; set; }
 
-    // MIDI CC (Control Change) numbers exposed as axis inputs
-    private const int NumCcInputs = 16;
-    // MIDI note numbers exposed as button inputs
-    private const int NumNoteInputs = 32;
     // MIDI CC 0-127 midpoint for centering (127 / 2)
     private const float MidiCcMidpoint = 63.5f;
 
@@ -109,24 +105,7 @@ public class MidiGamepad : IGamepad
         _isConnected = gamepadInfo.IsConnected;
 
         _commands = commandsService.GetCommandsForGamepad(this).ToList();
-
-        // Create CC axis inputs (faders/knobs)
-        for (int i = 0; i < NumCcInputs; i++)
-        {
-            var name = $"CC {i + 1}";
-            IInput input = new Input(name, name, InputType.Axis, _commands.AsReadOnly());
-            input.PersistentPropertyChanged += (s, e) => NotifyPersistentPropertyChanged("");
-            _inputs.Add(name, input);
-        }
-
-        // Create Note button inputs
-        for (int i = 0; i < NumNoteInputs; i++)
-        {
-            var name = $"Note {i}";
-            IInput input = new Input(name, name, InputType.Button, _commands.AsReadOnly());
-            input.PersistentPropertyChanged += (s, e) => NotifyPersistentPropertyChanged("");
-            _inputs.Add(name, input);
-        }
+        // No predefined inputs - they are created dynamically via MIDI learn
     }
 
     public void Acquire() { }
@@ -134,18 +113,29 @@ public class MidiGamepad : IGamepad
     public void Update() { }
 
     /// <summary>
+    /// Get an existing input or create a new one dynamically (MIDI learn).
+    /// </summary>
+    internal IInput GetOrCreateInput(string name, InputType inputType)
+    {
+        if (!_inputs.TryGetValue(name, out var input))
+        {
+            input = new Input(name, name, inputType, _commands.AsReadOnly());
+            input.PersistentPropertyChanged += (s, e) => NotifyPersistentPropertyChanged("");
+            _inputs[name] = input;
+            NotifyPropertyChanged(nameof(Inputs));
+        }
+        return input;
+    }
+
+    /// <summary>
     /// Process a MIDI CC (Control Change) message.
     /// </summary>
     internal void OnControlChange(int ccNumber, int value)
     {
-        if (ccNumber < 0 || ccNumber >= NumCcInputs) return;
-        var name = $"CC {ccNumber + 1}";
-        if (_inputs.TryGetValue(name, out var input))
-        {
-            // Map MIDI CC 0-127 to -1..1
-            float normalized = (value / MidiCcMidpoint) - 1f;
-            input.InputValue = Math.Clamp(normalized, -1f, 1f);
-        }
+        var name = $"CC {ccNumber}";
+        var input = GetOrCreateInput(name, InputType.Axis);
+        float normalized = (value / MidiCcMidpoint) - 1f;
+        input.InputValue = Math.Clamp(normalized, -1f, 1f);
     }
 
     /// <summary>
@@ -153,10 +143,9 @@ public class MidiGamepad : IGamepad
     /// </summary>
     internal void OnNoteOn(int noteNumber)
     {
-        if (noteNumber < 0 || noteNumber >= NumNoteInputs) return;
         var name = $"Note {noteNumber}";
-        if (_inputs.TryGetValue(name, out var input))
-            input.InputValue = 1f;
+        var input = GetOrCreateInput(name, InputType.Button);
+        input.InputValue = 1f;
     }
 
     /// <summary>
@@ -164,7 +153,6 @@ public class MidiGamepad : IGamepad
     /// </summary>
     internal void OnNoteOff(int noteNumber)
     {
-        if (noteNumber < 0 || noteNumber >= NumNoteInputs) return;
         var name = $"Note {noteNumber}";
         if (_inputs.TryGetValue(name, out var input))
             input.InputValue = 0f;

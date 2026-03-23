@@ -157,6 +157,11 @@ public class GamepadsViewModel : ViewModelBase, INotifyPropertyChanged
             // Keep the gamepad selected so configuration remains visible even when disconnected
         }
 
+        if (e.PropertyName == "Inputs")
+        {
+            InputViewModels = _selectedGamepad?.Inputs.Select(i => new InputViewModel(i));
+        }
+
         NotifyPropertyChanged(e.PropertyName ?? "");
     }
 

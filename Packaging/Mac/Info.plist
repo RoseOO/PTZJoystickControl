@@ -15,6 +15,6 @@
 		<key>NSHighResolutionCapable</key>
 		<true/>
 		<key>CFBundleExecutable</key>
-		<string>Gui</string>
+		<string>PTZJoyControl</string>
 	</dict>
 </plist>

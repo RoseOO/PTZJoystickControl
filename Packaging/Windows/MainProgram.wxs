@@ -244,19 +244,19 @@
 				<File Name="DynamicData.dll"/>
 			</Component>
 			<Component>
-				<File Name="Gui.deps.json"/>
+				<File Name="PTZJoyControl.deps.json"/>
 			</Component>
 			<Component>
-				<File Name="Gui.dll"/>
+				<File Name="PTZJoyControl.dll"/>
 			</Component>
 			<Component>
-				<File Name="Gui.exe" Id="MainExe" />
+				<File Name="PTZJoyControl.exe" Id="MainExe" />
 			</Component>
 			<Component>
-				<File Name="Gui.pdb"/>
+				<File Name="PTZJoyControl.pdb"/>
 			</Component>
 			<Component>
-				<File Name="Gui.runtimeconfig.json"/>
+				<File Name="PTZJoyControl.runtimeconfig.json"/>
 			</Component>
 			<Component>
 				<File Name="HarfBuzzSharp.dll"/>
